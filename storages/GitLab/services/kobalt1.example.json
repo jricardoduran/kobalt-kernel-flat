@@ -1,0 +1,14 @@
+{
+  "id": "kobalt1",
+  "label": "GitLab Kobalt",
+  "type": "gitlab",
+  "token": "glpat-TU_TOKEN_AQUI",
+  "project_id": "TU_PROJECT_ID",
+  "branch": "main",
+  "base_path": "kobalt_data",
+  "priority": 10,
+  "enabled": true,
+  "service_key": "GENERAR_CON: openssl rand -hex 32",
+  "url": "./storages/proxy.php",
+  "created_at": "2026-01-01 00:00:00"
+}

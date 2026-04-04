@@ -1,1 +1,3 @@
 .claude/
+storages/*/services/*.json
+!storages/*/services/*.example.json
