@@ -193,6 +193,7 @@
     $('sync-badge').style.display = '';
     $('btn-sync').style.display = '';
     $('btn-logout').style.display = '';
+    $('btn-accounts').style.display = 'none';
 
     V().setIfChanged($('ki-session'), session.db_id.slice(0, 12) + '…');
     await refreshEntities();
@@ -382,6 +383,7 @@
     $('sync-badge').style.display = 'none';
     $('btn-sync').style.display = 'none';
     $('btn-logout').style.display = 'none';
+    if (V().getLocalAccounts().length) $('btn-accounts').style.display = '';
     $('grid').innerHTML = '';
     setStatus('');
   }
