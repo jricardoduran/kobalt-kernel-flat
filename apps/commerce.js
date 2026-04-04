@@ -3,6 +3,7 @@
 
   const K = () => globalThis.__KOBALT__?.api;
   const C = () => globalThis.KobaltConnectors;
+  const V = () => globalThis.KobaltVisual;
 
   const AUTH_URL    = './auth.php';
   const STORAGE_URL = './storages/api.php';
@@ -12,23 +13,15 @@
   let uiCache    = { grid: '', stats: '', badge: '' };
 
   const $ = id => document.getElementById(id);
-  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  function parsePayload(raw) {
+    try { return JSON.parse(raw); }
+    catch { return { _error: true, nombre: '[payload corrupto]', stock: 0, sku: '' }; }
+  }
 
   /* ═══════════════════════════════════════════════════
      HELPERS UI — sync ≠ repaint
      ═══════════════════════════════════════════════════ */
-
-  function setIfChanged(el, val) { const v = String(val); if (el && el.textContent !== v) el.textContent = v; }
-  function setHTMLIfChanged(el, html) { if (el && el.innerHTML !== html) el.innerHTML = html; }
-
-  let toastTimer = null;
-  function toast(msg, isErr) {
-    const t = $('toast');
-    t.textContent = msg;
-    t.className = 'show' + (isErr ? ' e' : '');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.className = '', 3500);
-  }
 
   function setBadge(cls, text) {
     const key = cls + '::' + text;
@@ -36,7 +29,7 @@
     uiCache.badge = key;
     const b = $('sync-badge');
     b.className = 'badge ' + cls;
-    setIfChanged(b, text);
+    V().setIfChanged(b, text);
   }
 
   function setStatus(text, type) {
@@ -156,7 +149,7 @@
     $('btn-sync').style.display = '';
     $('btn-logout').style.display = '';
 
-    setIfChanged($('ki-session'), session.db_id.slice(0, 12) + '…');
+    V().setIfChanged($('ki-session'), session.db_id.slice(0, 12) + '…');
     await refreshEntities();
     await renderKernelInfo();
     await doSync();
@@ -195,17 +188,23 @@
   async function refreshEntities() {
     if (!session) return;
     const products = await K().loadEntitiesByType(session.db, 'product');
+    const pendingMap = await K().listPending(session.db);
 
-    const gridSig = JSON.stringify(products.map(p => p.entityId + p.stateHash));
+    const gridSig = JSON.stringify(products.map(p => ({
+      id: p.entityId,
+      sh: p.stateHash,
+      pending: !!pendingMap[p.entityId],
+    })));
+
     if (uiCache.grid !== gridSig) {
       uiCache.grid = gridSig;
-      renderGrid(products);
+      renderGrid(products, pendingMap);
     }
 
     await renderKernelInfo();
   }
 
-  function renderGrid(products) {
+  function renderGrid(products, pendingMap) {
     const grid = $('grid');
     const empty = $('empty');
 
@@ -217,12 +216,14 @@
     grid.style.display = 'grid';
     empty.style.display = 'none';
 
+    const { esc } = V();
     grid.innerHTML = products.map(p => {
-      let d; try { d = JSON.parse(p.payload); } catch { d = {}; }
+      const d = parsePayload(p.payload);
       const stk = Number(d.stock ?? 0);
       const cls = stk === 0 ? 's0' : (stk <= 3 ? 'sl' : 'sk');
       const lbl = stk === 0 ? 'AGOTADO' : (stk <= 3 ? 'BAJO' : 'OK');
       const ts  = p.ts ? new Date(p.ts).toLocaleString('es') : '—';
+      const dotCls = pendingMap && pendingMap[p.entityId] ? 'p' : 's';
       return `<div class="card" data-eid="${esc(p.entityId)}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
           <div class="cname">${esc(d.nombre || d.name || '—')}</div>
@@ -240,7 +241,7 @@
         </div>
         <div class="cmeta">
           <span style="display:flex;align-items:center;gap:4px">
-            <span class="dot s"></span> ${esc(p.entityId.slice(0,8))}…
+            <span class="dot ${dotCls}"></span> ${esc(p.entityId.slice(0,8))}…
           </span>
           <span>${esc(ts)}</span>
         </div>
@@ -265,7 +266,7 @@
   async function addProduct() {
     if (!session) return;
     const nombre = $('add-name').value.trim();
-    if (!nombre) { toast('Nombre requerido', true); return; }
+    if (!nombre) { V().toast('Nombre requerido'); return; }
     await K().createEntity(session, {
       _type: 'product', nombre,
       sku: $('add-sku').value.trim(),
@@ -274,28 +275,28 @@
     $('add-name').value = ''; $('add-sku').value = ''; $('add-stk').value = '0';
     $('add-bar').classList.remove('open');
     await refreshEntities();
-    toast('Producto creado');
-    doSync();
+    V().toast('Producto creado');
+    doSync().catch(() => setBadge('badge-warn', 'PENDING'));
   }
 
   async function updateField(eid, field, value) {
     const e = await K().loadEntityLocal(session.db, eid);
     if (!e) return;
-    let p; try { p = JSON.parse(e.payload); } catch { p = {}; }
+    const p = parsePayload(e.payload);
     p[field] = field === 'stock' ? Math.max(0, Number(value || 0)) : value;
     await K().saveEntityVersion(session, eid, p);
     await refreshEntities();
-    doSync();
+    doSync().catch(() => setBadge('badge-warn', 'PENDING'));
   }
 
   async function adjustStock(eid, delta) {
     const e = await K().loadEntityLocal(session.db, eid);
     if (!e) return;
-    let p; try { p = JSON.parse(e.payload); } catch { p = {}; }
+    const p = parsePayload(e.payload);
     p.stock = Math.max(0, Number(p.stock || 0) + delta);
     await K().saveEntityVersion(session, eid, p);
     await refreshEntities();
-    doSync();
+    doSync().catch(() => setBadge('badge-warn', 'PENDING'));
   }
 
   async function exportJSON() {
@@ -315,12 +316,12 @@
 
   async function renderKernelInfo() {
     if (!session) return;
-    setIfChanged($('ki-node'), session.nodeId);
-    setIfChanged($('ki-db'), session.db_id);
-    setIfChanged($('ki-version'), K().KERNEL_VERSION);
+    V().setIfChanged($('ki-node'), session.nodeId);
+    V().setIfChanged($('ki-db'), session.db_id);
+    V().setIfChanged($('ki-version'), K().KERNEL_VERSION);
     const counts = await K().countByType(session.db);
-    setIfChanged($('ki-count'), String(Object.values(counts).reduce((s, n) => s + n, 0)));
-    setIfChanged($('ki-status'), session.status || 'activa');
+    V().setIfChanged($('ki-count'), String(Object.values(counts).reduce((s, n) => s + n, 0)));
+    V().setIfChanged($('ki-status'), session.status || 'activa');
   }
 
   /* ═══════════════════════════════════════════════════
