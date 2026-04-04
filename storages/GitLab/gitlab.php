@@ -4,18 +4,8 @@ require_once dirname(__DIR__) . '/common.php';
 
 if (!defined('GL_AS_LIB')) {
 
-    header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, X-Requested-With');
-    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
-
-    $cfg = kobaltLoadServiceInDir(__DIR__ . '/services', (string)($_GET['service'] ?? ''));
-    if (!$cfg) {
-        http_response_code(503);
-        header('Content-Type: application/json');
-        echo json_encode(['ok' => false, 'error' => 'Sin servicios GitLab. Configurar en register.html.']);
-        exit;
-    }
+    kobaltCors();
+    $cfg = kobaltRequireToken();
 
     $action = (string)($_GET['action'] ?? '');
     $method = $_SERVER['REQUEST_METHOD'];

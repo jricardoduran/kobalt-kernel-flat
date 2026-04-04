@@ -2,7 +2,7 @@
   "id": "gitlab",
   "label": "GitLab",
   "accent": "#fc6d26",
-  "connector": "./storages/proxy.php",
+  "connector": "./storages/GitLab/gitlab.php",
   "fields": [
     {
       "id": "label",
