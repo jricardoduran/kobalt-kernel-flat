@@ -84,6 +84,102 @@
     });
   }
 
+  // ═══ POS — estado ═══
+  let posFilter      = 'all';
+  let currentSaleEid = null;
+
+  function setPosFilter(f) {
+    posFilter = f;
+    document.querySelectorAll('#tab-pos .fbtn')
+      .forEach(b => b.classList.toggle('on', b.id === 'pos-f-' + f));
+    refreshPOS();
+  }
+
+  async function refreshPOS() {
+    if (!session) return;
+    let prods = await K().loadEntitiesByType(session.db, 'product');
+
+    if (posFilter === 'stock')
+      prods = prods.filter(p => Number(parsePayload(p.payload).stock) > 0);
+
+    const raw = nfd($('pos-search')?.value || '');
+    if (raw) prods = prods.filter(p => {
+      const d = parsePayload(p.payload);
+      return nfd(d.nombre || '').includes(raw) ||
+             (d.sku || '').toLowerCase().includes(raw);
+    });
+
+    const grid = $('pos-grid');
+    if (!grid) return;
+
+    if (!prods.length) {
+      grid.innerHTML = `<div style="color:var(--text-muted);font-size:.82rem;padding:32px 0">Sin productos</div>`;
+      return;
+    }
+
+    const { esc } = V();
+    grid.innerHTML = prods.map(p => {
+      const d  = parsePayload(p.payload);
+      const bc = V().stockBadgeClass(d.stock);
+      const bl = V().stockBadgeLabel(d.stock);
+      return `
+        <div class="card pcard" data-eid="${esc(p.entityId)}" style="cursor:pointer">
+          <div style="font-size:.78rem;font-weight:700;line-height:1.4;
+                      display:-webkit-box;-webkit-line-clamp:2;
+                      -webkit-box-orient:vertical;overflow:hidden">
+            ${esc(d.nombre || d.name || '—')}
+          </div>
+          ${d.sku ? `<div style="font-size:.65rem;color:var(--text-muted)">${esc(d.sku)}</div>` : ''}
+          <span class="sbadge ${bc}">${bl}</span>
+          <div style="font-size:.7rem;font-weight:700;color:var(--accent);margin-top:auto">
+            VENDER →
+          </div>
+        </div>`;
+    }).join('');
+
+    grid.querySelectorAll('.pcard').forEach(c =>
+      c.addEventListener('click', () => openSaleModal(c.dataset.eid)));
+  }
+
+  async function openSaleModal(eid) {
+    const entity = await K().loadEntityLocal(session.db, eid);
+    if (!entity) return;
+    const d = parsePayload(entity.payload);
+    currentSaleEid = eid;
+    $('sale-pname').textContent = d.nombre || d.name || '—';
+    $('sale-pmeta').textContent =
+      [d.sku ? 'SKU: ' + d.sku : null,
+       d.stock != null ? 'Stock: ' + d.stock : null]
+      .filter(Boolean).join(' · ');
+    $('sale-qty').value   = 1;
+    $('sale-price').value = '';
+    $('sale-notes').value = '';
+    $('sale-modal').style.display = 'flex';
+    $('sale-qty').focus();
+  }
+
+  async function recordSale() {
+    if (!currentSaleEid || !session) return;
+    const entity = await K().loadEntityLocal(session.db, currentSaleEid);
+    if (!entity) return;
+    const qty   = Math.max(1, Number($('sale-qty').value)   || 1);
+    const price = Math.max(0, Number($('sale-price').value) || 0);
+    const notes = $('sale-notes').value.trim();
+    const sp    = makeSalePayload(entity, qty, price, notes);
+
+    await K().createEntity(session, sp, 'sale');
+
+    const d = parsePayload(entity.payload);
+    if (d.stock !== null && d.stock !== undefined)
+      await updateField(currentSaleEid, 'stock', Math.max(0, Number(d.stock) - qty));
+
+    $('sale-modal').style.display = 'none';
+    currentSaleEid = null;
+    V().toast('Venta: ' + qty + '× ' + (d.nombre || d.name || '—').slice(0, 30));
+    doSync().catch(() => setBadge('badge-warn', 'PENDING'));
+    await refreshPOS();
+  }
+
   function saleSummary(sales) {
     const count   = sales.length;
     const units   = sales.reduce((a, s) => {
@@ -723,6 +819,31 @@
     $('search-input').addEventListener('input', () => {
       searchQuery = $('search-input').value;
       refreshEntities();
+    });
+
+    // POS — listeners
+    $('pos-search')?.addEventListener('input', () => refreshPOS());
+    $('pos-f-all')?.addEventListener('click', () => setPosFilter('all'));
+    $('pos-f-stock')?.addEventListener('click', () => setPosFilter('stock'));
+    $('sale-modal-close')?.addEventListener('click', () => {
+      $('sale-modal').style.display = 'none';
+      currentSaleEid = null;
+    });
+    $('sale-qty-m')?.addEventListener('click', () => {
+      $('sale-qty').value = Math.max(1, Number($('sale-qty').value) - 1);
+    });
+    $('sale-qty-p')?.addEventListener('click', () => {
+      $('sale-qty').value = Number($('sale-qty').value) + 1;
+    });
+    $('sale-confirm')?.addEventListener('click', recordSale);
+    $('sale-qty')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') recordSale();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && currentSaleEid) {
+        $('sale-modal').style.display = 'none';
+        currentSaleEid = null;
+      }
     });
 
     // Tabs de navegación de la app

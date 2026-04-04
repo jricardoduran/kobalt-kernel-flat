@@ -328,3 +328,10 @@ body{font-family:var(--font-body);background:var(--page-bg);color:var(--text-pri
 .app-tab.on{color:var(--accent);border-bottom-color:var(--accent);}
 .tab-page{display:none;}
 .tab-page.on{display:block;}
+
+/* ═══ POS ═══ */
+.field-label{display:block;font-size:.68rem;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;
+  color:var(--text-muted);margin-bottom:4px;}
+.pcard{cursor:pointer;transition:border-color .15s;}
+.pcard:hover{border-color:var(--accent) !important;}
