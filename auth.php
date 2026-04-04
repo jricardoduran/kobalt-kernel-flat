@@ -176,7 +176,7 @@ if ($action === 'register') {
     ];
     saveUsers($users);
 
-    echo json_encode(['ok' => true, 'H_u' => $H_u, 'services' => buildServicePackage($H_u)]);
+    echo json_encode(['ok' => true, 'H_u' => $H_u, 'name' => $nameNorm, 'services' => buildServicePackage($H_u)]);
     exit;
 }
 
@@ -216,7 +216,7 @@ if ($action === 'login') {
         exit;
     }
 
-    echo json_encode(['ok' => true, 'H_u' => $user['H_u'], 'services' => buildServicePackage($user['H_u'])]);
+    echo json_encode(['ok' => true, 'H_u' => $user['H_u'], 'name' => $user['name_norm'] ?? '', 'services' => buildServicePackage($user['H_u'])]);
     exit;
 }
 
