@@ -12,6 +12,33 @@
   let syncHandle = null;
   let uiCache    = { grid: '', stats: '', badge: '' };
 
+  // ─── UI diferencial de cuentas locales ───────────────
+  let _accountsSig = '';
+
+  function accountsSig() {
+    return V().getLocalAccounts()
+      .map(a => a.db_id + (a.name || '') + (a.lastSeenAt || 0))
+      .join('|');
+  }
+
+  function syncAccountsUI() {
+    const sig = accountsSig();
+    if (sig === _accountsSig) return;
+    _accountsSig = sig;
+
+    const accounts = V().getLocalAccounts();
+    const btn   = $('btn-accounts');
+    const badge = $('acc-badge');
+    if (!btn) return;
+
+    if (accounts.length && !session) {
+      btn.style.display = '';
+      if (badge) { badge.textContent = accounts.length; badge.style.display = ''; }
+    } else {
+      btn.style.display = 'none';
+    }
+  }
+
   const $ = id => document.getElementById(id);
 
   function parsePayload(raw) {
@@ -426,20 +453,13 @@
       }
     });
 
-    // Botón de cuentas — solo si hay cuentas guardadas
-    const accounts = V().getLocalAccounts();
-    if (accounts.length) {
-      const btn = $('btn-accounts');
-      if (btn) {
-        btn.style.display = '';
-        const badge = $('acc-badge');
-        if (badge) {
-          badge.textContent = accounts.length;
-          badge.style.display = '';
-        }
-        btn.addEventListener('click', () => drawer.open());
-      }
-    }
+    // Botón de cuentas — dinámico, diferencial
+    $('btn-accounts').addEventListener('click', () => drawer.open());
+    syncAccountsUI();
+    window.addEventListener('storage', e => {
+      if (e.key === 'device:user_registry:v2') syncAccountsUI();
+    });
+    setInterval(syncAccountsUI, 2000);
 
     // Detect-while-typing — cuenta conocida
     $('loginPhone').addEventListener('input', () => {
