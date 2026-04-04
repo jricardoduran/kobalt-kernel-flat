@@ -32,11 +32,17 @@
     V().setIfChanged(b, text);
   }
 
-  function setStatus(text, type) {
+  function setStatus(text, type, action) {
     const el = $('statusOut');
     if (!el) return;
-    el.textContent = text || '';
-    el.className = text ? ('visible st-' + (type || 'warn')) : '';
+    if (!text) { el.textContent = ''; el.className = ''; return; }
+    el.className = 'visible st-' + (type || 'warn');
+    if (action) {
+      el.innerHTML = V().esc(text) + ' <button class="link-btn" style="margin-left:6px">' + V().esc(action.label) + '</button>';
+      el.querySelector('button').addEventListener('click', action.fn);
+    } else {
+      el.textContent = text;
+    }
   }
 
   /* ═══════════════════════════════════════════════════
@@ -91,15 +97,23 @@
       const data = await resp.json();
 
       if (!data.ok) {
-        setStatus(data.error || 'Error al registrar', 'err');
+        const e = (data.error || '').toLowerCase();
+        if (e.includes('ya tiene cuenta')) {
+          setStatus('Este teléfono ya tiene una cuenta. ¿Quieres ingresar?', 'err',
+            { label: 'Ingresar', fn: () => switchTab('login') });
+        } else if (e.includes('requerido')) {
+          setStatus('Completa nombre, teléfono y contraseña para registrarte.', 'err');
+        } else {
+          setStatus(data.error, 'err');
+        }
         return;
       }
 
       setStatus('Registrado. Abriendo sesión…', 'ok');
       await openKernelSession(data, storagesConfig);
 
-    } catch (err) {
-      setStatus('Error: ' + err.message, 'err');
+    } catch {
+      setStatus('Sin conexión. Revisa tu internet.', 'err');
     }
   }
 
@@ -123,15 +137,25 @@
       const data = await resp.json();
 
       if (!data.ok) {
-        setStatus(data.error || 'Error al ingresar', 'err');
+        const e = (data.error || '').toLowerCase();
+        if (e.includes('phone') || e.includes('teléfono') || e.includes('telefono')) {
+          setStatus('Teléfono no registrado. ¿Quieres crear una cuenta?', 'err',
+            { label: 'Regístrate', fn: () => switchTab('register') });
+        } else if (e.includes('contraseña') || e.includes('password') || e.includes('clave')) {
+          setStatus('Contraseña incorrecta. Inténtalo de nuevo.', 'err');
+        } else if (e.includes('requerido')) {
+          setStatus('Completa todos los campos para continuar.', 'err');
+        } else {
+          setStatus(data.error, 'err');
+        }
         return;
       }
 
       setStatus('Identidad verificada. Abriendo sesión…', 'ok');
       await openKernelSession(data, storagesConfig);
 
-    } catch (err) {
-      setStatus('Error: ' + err.message, 'err');
+    } catch {
+      setStatus('Sin conexión. Revisa tu internet.', 'err');
     }
   }
 
