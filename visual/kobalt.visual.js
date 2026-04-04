@@ -430,6 +430,36 @@
     setTimeout(() => t.remove(), duration || 3000);
   }
 
+  // ═══ UTILIDADES DE DOMINIO ═══
+
+  function fmtMoney(n) {
+    if (!n && n !== 0) return '—';
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency', currency: 'COP',
+      minimumFractionDigits: 0, maximumFractionDigits: 0
+    }).format(Number(n));
+  }
+
+  function monthKey(date) {
+    const d = date instanceof Date ? date : new Date(date);
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0');
+  }
+
+  function stockBadgeClass(stock) {
+    if (stock === null || stock === undefined) return 'badge-warn';
+    if (stock === 0)  return 'badge-err';
+    if (stock <= 3)   return 'badge-warn';
+    return 'badge-ok';
+  }
+
+  function stockBadgeLabel(stock) {
+    if (stock === null || stock === undefined) return 'SIN DATO';
+    if (stock === 0)  return 'AGOTADO 0';
+    if (stock <= 3)   return 'BAJO ' + stock;
+    return 'OK ' + stock;
+  }
+
   global.KobaltVisual = {
     byId, esc, show, hide, toggle,
     setIfChanged, setHTMLIfChanged,
@@ -439,6 +469,7 @@
     COUNTRIES, flagUrl, detectCountryFromBrowser,
     createCountryPicker, getLocalAccounts, saveLocalAccount, findLocalByPhone,
     createAccountsDrawer,
+    fmtMoney, monthKey, stockBadgeClass, stockBadgeLabel,
   };
 
 })(globalThis);

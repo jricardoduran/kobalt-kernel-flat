@@ -318,3 +318,13 @@ body{font-family:var(--font-body);background:var(--page-bg);color:var(--text-pri
 .cname-cancel-btn{color:var(--err);}
 .cname-save-btn:hover{background:rgba(92,217,160,.12);}
 .cname-cancel-btn:hover{background:rgba(244,112,128,.12);}
+
+/* ═══ Tabs de navegación de la app ═══ */
+#app-tabs{display:flex;border-bottom:1px solid var(--border-subtle);margin-bottom:16px;}
+.app-tab{background:none;border:none;border-bottom:2px solid transparent;
+  color:var(--text-muted);font-family:var(--font-body);font-size:.82rem;
+  font-weight:600;padding:12px 20px;cursor:pointer;transition:all .15s;}
+.app-tab:hover{color:var(--text-primary);}
+.app-tab.on{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-page{display:none;}
+.tab-page.on{display:block;}

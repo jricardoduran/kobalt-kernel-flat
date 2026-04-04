@@ -52,6 +52,49 @@
     catch { return { _error: true, nombre: '[payload corrupto]', stock: 0, sku: '' }; }
   }
 
+  // ═══ HELPERS DE VENTAS ═══
+
+  function makeSalePayload(entity, qty, price, notes) {
+    const d = parsePayload(entity.payload);
+    const now = new Date();
+    return {
+      _type:       'sale',
+      product_eid: entity.entityId,
+      nombre:      d.nombre || d.name || '—',
+      sku:         d.sku || '',
+      qty:         Math.max(1, Number(qty) || 1),
+      price:       Math.max(0, Number(price) || 0),
+      total:       Math.max(1, Number(qty) || 1) * Math.max(0, Number(price) || 0),
+      notes:       String(notes || '').trim(),
+      month_key:   V().monthKey(now),
+      created_at:  now.toISOString(),
+    };
+  }
+
+  async function loadSales() {
+    if (!session) return [];
+    return K().loadEntitiesByType(session.db, 'sale');
+  }
+
+  async function loadSalesByMonth(mk) {
+    const all = await loadSales();
+    return all.filter(s => {
+      try { return parsePayload(s.payload).month_key === mk; }
+      catch { return false; }
+    });
+  }
+
+  function saleSummary(sales) {
+    const count   = sales.length;
+    const units   = sales.reduce((a, s) => {
+      try { return a + (parsePayload(s.payload).qty || 0); } catch { return a; }
+    }, 0);
+    const revenue = sales.reduce((a, s) => {
+      try { return a + (parsePayload(s.payload).total || 0); } catch { return a; }
+    }, 0);
+    return { count, units, revenue, avg: count > 0 ? revenue / count : 0 };
+  }
+
   // F5 — normalización NFD para búsqueda insensible a tildes
   function nfd(s) {
     return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -680,6 +723,22 @@
     $('search-input').addEventListener('input', () => {
       searchQuery = $('search-input').value;
       refreshEntities();
+    });
+
+    // Tabs de navegación de la app
+    document.querySelectorAll('.app-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.app-tab').forEach(b => b.classList.remove('on'));
+        document.querySelectorAll('.tab-page').forEach(p => {
+          p.classList.remove('on');
+          p.style.display = 'none';
+        });
+        btn.classList.add('on');
+        const tab = $('tab-' + btn.dataset.tab);
+        if (tab) { tab.style.display = 'block'; tab.classList.add('on'); }
+        if (btn.dataset.tab === 'pos')       refreshPOS();
+        if (btn.dataset.tab === 'historial') refreshHistorial();
+      });
     });
   });
 

@@ -119,6 +119,14 @@
     <button id="btn-close-add" class="btn" style="padding:6px 8px">✕</button>
   </div>
 
+  <div id="app-tabs">
+    <button class="app-tab on" data-tab="inventario">Inventario</button>
+    <button class="app-tab" data-tab="pos">Vender</button>
+    <button class="app-tab" data-tab="historial">Historial</button>
+  </div>
+
+  <div id="tab-inventario" class="tab-page on">
+
   <div class="controls-bar">
     <div class="search-wrap">
       <span class="search-ico">⌕</span>
@@ -162,6 +170,15 @@
     <div class="ki-row"><span class="ki-label">Status</span><span class="ki-val" id="ki-status">—</span></div>
     <div class="ki-row"><span class="ki-label">Kernel</span><span class="ki-val" id="ki-version">—</span></div>
   </div>
+
+  </div><!-- /tab-inventario -->
+
+  <div id="tab-pos" class="tab-page" style="display:none">
+  </div><!-- /tab-pos -->
+
+  <div id="tab-historial" class="tab-page" style="display:none">
+  </div><!-- /tab-historial -->
+
 </div>
 
 <!-- Toast -->
