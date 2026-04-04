@@ -613,3 +613,38 @@ T8: kobalt1.json en repo → gitignore + example.json
 
 **Modelo canónico**: `kernel_flat.js` v3.2.1
 Si ves código que pasa H_u_hex a funciones L después de openSession → regresión.
+
+---
+
+## Disciplina de snapshots
+
+Un snapshot es una proyección del estado del repositorio en un momento
+semánticamente importante. No es automático por tiempo — es un acto deliberado.
+
+**Cuándo hacer un snapshot:**
+- Antes de un cambio arquitectónico grande
+- Después de completar una fase funcional completa
+- Cuando el usuario lo solicita explícitamente
+- Antes de experimentar algo que podría romper el sistema
+
+**Cómo hacerlo:**
+```
+node snapshot.js          → solo snapshot
+npm run snap-deploy       → snapshot + deploy
+```
+
+**Qué genera:**
+- Un git tag:  `snapshot-YYYYMMDD_HHMMSS`
+- Un zip local en `/snapshots/` con el mismo nombre
+- Excluye: node_modules, .git, snapshots/, credenciales (data/users.json, kobalt1.json)
+
+**Para restaurar un snapshot:**
+```
+git checkout snapshot-20260404_143022
+# (el zip también es portable sin git)
+```
+
+**Lo que NO hace:**
+- No hace push automático de tags a origin
+- No reemplaza el commit normal ni el deploy
+- No incluye el estado de IDB local (eso es por diseño local-first)

@@ -2,3 +2,5 @@
 !.claude/skills/
 storages/*/services/*.json
 !storages/*/services/*.example.json
+snapshots/
+node_modules/

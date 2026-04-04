@@ -1,0 +1,13 @@
+{
+  "name": "kobalt-kernel-flat",
+  "version": "3.2.1",
+  "private": true,
+  "scripts": {
+    "deploy":       "node deploy.js",
+    "snapshot":     "node snapshot.js",
+    "snap-deploy":  "node snapshot.js && node deploy.js"
+  },
+  "devDependencies": {
+    "archiver": "^7.0.0"
+  }
+}
