@@ -2,6 +2,7 @@
   "name": "kobalt-kernel-flat",
   "version": "3.2.1",
   "private": true,
+  "type": "module",
   "scripts": {
     "deploy":       "node deploy.js",
     "snapshot":     "node snapshot.js",

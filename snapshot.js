@@ -17,12 +17,13 @@
  *   npm run snap-deploy       → snapshot + deploy
  */
 
-'use strict';
+import { execSync }        from 'child_process';
+import fs                  from 'fs';
+import path                from 'path';
+import { fileURLToPath }   from 'url';
+import archiver            from 'archiver';
 
-const { execSync } = require('child_process');
-const fs           = require('fs');
-const path         = require('path');
-const archiver     = require('archiver');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ── Timestamp legible ──────────────────────────────────────────────────────
 const now = new Date();

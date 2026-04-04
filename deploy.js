@@ -5,7 +5,8 @@ const ENDPOINT = 'https://kobalt.app/flat/testClaudeCode/deploy.php';
 const IGNORE   = [
   'node_modules', '.git', '.claude', '.claude-flow', '.swarm',
   'deploy.js', 'deploy.php', 'current', 'data',
-  'package.json', 'package-lock.json'
+  'package.json', 'package-lock.json',
+  'snapshots',    // zips locales — no van al servidor
 ];
 
 function collectFiles(dir, base = dir) {
