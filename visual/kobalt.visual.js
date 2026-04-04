@@ -265,14 +265,25 @@
     catch { return []; }
   }
 
+  function findLocalByPhone(countryCode, phoneDigits) {
+    const digits = String(phoneDigits).replace(/\D+/g, '');
+    if (!digits || digits.length < 6) return null;
+    return getLocalAccounts().find(a =>
+      a.countryCode === countryCode &&
+      String(a.phoneDigits).replace(/\D+/g, '') === digits
+    ) || null;
+  }
+
   function saveLocalAccount(account) {
     const accounts = getLocalAccounts();
     const idx = accounts.findIndex(a => a.db_id === account.db_id);
-    if (idx >= 0) accounts[idx] = { ...accounts[idx], ...account };
-    else accounts.unshift(account);
+    const updated = { ...account, lastSeenAt: Date.now() };
+    if (idx >= 0) accounts[idx] = { ...accounts[idx], ...updated };
+    else accounts.unshift(updated);
+    accounts.sort((a, b) => (b.lastSeenAt || 0) - (a.lastSeenAt || 0));
     try {
       localStorage.setItem(DEVICE_REGISTRY_KEY,
-        JSON.stringify(accounts.slice(0, 10)));
+        JSON.stringify(accounts.slice(0, 20)));
     } catch {}
   }
 
@@ -420,7 +431,7 @@
     setView, toast,
     loadAsset, loadAssetCSS, loadAssetImg,
     COUNTRIES, flagUrl, detectCountryFromBrowser,
-    createCountryPicker, getLocalAccounts, saveLocalAccount,
+    createCountryPicker, getLocalAccounts, saveLocalAccount, findLocalByPhone,
     createAccountsDrawer,
   };
 

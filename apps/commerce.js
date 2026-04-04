@@ -428,6 +428,30 @@
       }
     }
 
+    // Detect-while-typing — cuenta conocida
+    $('loginPhone').addEventListener('input', () => {
+      const countryCode = window._loginPicker?.getCode() || 'CO';
+      const digits = $('loginPhone').value.replace(/\D+/g, '');
+      const found = V().findLocalByPhone(countryCode, digits);
+      if (found) {
+        let hint = document.getElementById('phone-hint');
+        if (!hint) {
+          hint = document.createElement('div');
+          hint.id = 'phone-hint';
+          hint.style.cssText = 'font-size:.72rem;color:var(--accent);margin-top:4px;cursor:pointer;font-weight:600;';
+          $('loginPhone').parentNode.appendChild(hint);
+        }
+        hint.textContent = '\u{1F464} ' + (found.name || 'Cuenta conocida') + ' — clic para pre-rellenar';
+        hint.onclick = () => {
+          window._loginPicker?.setCode(found.countryCode);
+          $('loginPhone').value = found.phoneDigits;
+          hint.remove();
+        };
+      } else {
+        document.getElementById('phone-hint')?.remove();
+      }
+    });
+
     // Enter key
     ['loginPhone','loginPass'].forEach(id =>
       $(id).addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(storagesConfig); })
