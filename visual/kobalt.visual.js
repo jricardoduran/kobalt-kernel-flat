@@ -277,9 +277,15 @@
   function saveLocalAccount(account) {
     const accounts = getLocalAccounts();
     const idx = accounts.findIndex(a => a.db_id === account.db_id);
-    const updated = { ...account, lastSeenAt: Date.now() };
-    if (idx >= 0) accounts[idx] = { ...accounts[idx], ...updated };
-    else accounts.unshift(updated);
+    const prev = idx >= 0 ? accounts[idx] : {};
+    const merged = {
+      ...prev,
+      ...account,
+      name: account.name || prev.name || '',
+      lastSeenAt: Date.now(),
+    };
+    if (idx >= 0) accounts[idx] = merged;
+    else accounts.unshift(merged);
     accounts.sort((a, b) => (b.lastSeenAt || 0) - (a.lastSeenAt || 0));
     try {
       localStorage.setItem(DEVICE_REGISTRY_KEY,

@@ -110,7 +110,13 @@
       }
 
       setStatus('Registrado. Abriendo sesión…', 'ok');
-      await openKernelSession(data, storagesConfig);
+      await openKernelSession({
+        ...data,
+        name:        name,
+        countryCode: countryCode,
+        countryDial: dial,
+        phoneDigits: phone,
+      }, storagesConfig);
 
     } catch {
       setStatus('Sin conexión. Revisa tu internet.', 'err');
@@ -152,7 +158,12 @@
       }
 
       setStatus('Identidad verificada. Abriendo sesión…', 'ok');
-      await openKernelSession(data, storagesConfig);
+      await openKernelSession({
+        ...data,
+        countryCode: countryCode,
+        countryDial: dial,
+        phoneDigits: phone,
+      }, storagesConfig);
 
     } catch {
       setStatus('Sin conexión. Revisa tu internet.', 'err');
