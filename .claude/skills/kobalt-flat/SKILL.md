@@ -375,6 +375,12 @@ I12: fromNetwork(toNetwork(x)) = x
 I13: index.html no tiene CSS inline — todo en kobalt.css
 
 I14: [app].js no reimplementa funciones de KobaltVisual
+
+I15: asset externo → local-first
+     Todo recurso externo (imagen, CSS, fuente) se cachea en localStorage
+     tras la primera carga. La red es el origen, no el hogar permanente.
+     Patrón: loadAsset(key, url) → localStorage → fallback al CDN
+     Si ves un <img src="https://..."> sin pasar por loadAssetImg → violación.
 ```
 
 ---
@@ -424,6 +430,8 @@ I14: [app].js no reimplementa funciones de KobaltVisual
 | "voy a añadir otro store IDB para separar" | 1 store con prefijos basta |
 | "snapshot es una entidad especial" | snapshot ⊂ sync — mismo merge |
 | "doSync() sin await aquí no importa" | Los errores de sync siempre son visibles |
+| "<img src> directo a CDN en cada render" | Usar loadAssetImg para cachear |
+| "<link> a CDN sin caché local"           | Usar loadAssetCSS para cachear |
 
 ---
 

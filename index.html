@@ -28,6 +28,9 @@
   <div class="nav-right">
     <span id="sync-badge" class="badge badge-warn" style="display:none">—</span>
     <button id="btn-sync" class="btn" style="display:none">↻ Sync</button>
+    <button id="btn-accounts" class="btn" style="display:none">
+      Cuentas<span id="acc-badge" class="acc-badge" style="display:none">0</span>
+    </button>
     <button id="btn-logout" class="btn" style="display:none">Salir</button>
     <button id="btnTheme" class="btn-theme">
       <span id="thIconD">☾</span><span id="thIconL" style="display:none">☀</span>
@@ -52,9 +55,10 @@
           <div class="form-stack">
             <div class="field">
               <label>Código país + Teléfono</label>
-              <div class="phone-row">
-                <input class="k-input" type="text" id="loginDial" value="57" placeholder="57">
-                <input class="k-input" type="tel" id="loginPhone" placeholder="3176371365" autocomplete="tel">
+              <div class="country-phone-row">
+                <div id="loginCountryPicker"></div>
+                <input class="k-input" type="tel" id="loginPhone"
+                       placeholder="3001234567" autocomplete="tel">
               </div>
             </div>
             <div class="field">
@@ -75,9 +79,10 @@
             </div>
             <div class="field">
               <label>Código país + Teléfono</label>
-              <div class="phone-row">
-                <input class="k-input" type="text" id="regDial" value="57" placeholder="57">
-                <input class="k-input" type="tel" id="regPhone" placeholder="3176371365" autocomplete="tel">
+              <div class="country-phone-row">
+                <div id="regCountryPicker"></div>
+                <input class="k-input" type="tel" id="regPhone"
+                       placeholder="3001234567" autocomplete="tel">
               </div>
               <span class="hint">Código de marcado del país + dígitos del teléfono.</span>
             </div>
@@ -128,6 +133,33 @@
 
 <!-- Toast -->
 <div id="toast"></div>
+
+<!-- Overlay -->
+<div id="drawer-overlay" class="drawer-overlay"></div>
+
+<!-- Drawer de cuentas -->
+<div id="accounts-drawer" class="accounts-drawer">
+  <div class="drawer-head">
+    <div>
+      <div class="drawer-title">Cuentas en este dispositivo</div>
+      <div class="drawer-sub">Selecciona para pre-rellenar</div>
+    </div>
+    <button id="drawer-close-btn" class="btn-close">
+      <svg viewBox="0 0 12 12" fill="none">
+        <path d="M1 1l10 10M11 1L1 11" stroke="currentColor"
+              stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <div id="drawer-account-list"></div>
+  </div>
+  <div class="drawer-foot">
+    <button id="drawer-clear-btn" class="btn-clear-all">
+      Limpiar cuentas guardadas
+    </button>
+  </div>
+</div>
 
 <!-- ═══ SCRIPTS ═══ -->
 <script src="./core/kernel_flat.js"></script>

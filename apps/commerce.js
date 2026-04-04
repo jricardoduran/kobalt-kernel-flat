@@ -71,7 +71,8 @@
 
   async function doRegister(storagesConfig) {
     const name = $('regName').value.trim();
-    const dial = $('regDial').value.trim();
+    const dial        = window._regPicker?.getDial() || '57';
+    const countryCode = window._regPicker?.getCode() || 'CO';
     const phone = $('regPhone').value.trim().replace(/\D+/g, '');
     const pass = $('regPass').value;
 
@@ -85,7 +86,7 @@
       const resp = await fetch(`${AUTH_URL}?action=register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, password: pass, countryDial: dial, countryCode: 'CO' }),
+        body: JSON.stringify({ name, phone, password: pass, countryDial: dial, countryCode }),
       });
       const data = await resp.json();
 
@@ -103,7 +104,8 @@
   }
 
   async function doLogin(storagesConfig) {
-    const dial  = $('loginDial').value.trim();
+    const dial        = window._loginPicker?.getDial() || '57';
+    const countryCode = window._loginPicker?.getCode() || 'CO';
     const phone = $('loginPhone').value.trim().replace(/\D+/g, '');
     const pass  = $('loginPass').value;
 
@@ -116,7 +118,7 @@
       const resp = await fetch(`${AUTH_URL}?action=login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password: pass, countryDial: dial }),
+        body: JSON.stringify({ phone, password: pass, countryDial: dial, countryCode }),
       });
       const data = await resp.json();
 
@@ -142,6 +144,14 @@
 
     const cs = await C().buildServices(session, storagesConfig);
     K().bindSessionStorages(session, cs);
+
+    V().saveLocalAccount({
+      db_id:        session.db_id,
+      name:         authData.name || '',
+      countryCode:  authData.countryCode  || 'CO',
+      countryDial:  authData.countryDial  || '57',
+      phoneDigits:  authData.phoneDigits  || '',
+    });
 
     $('screen-login').style.display = 'none';
     $('screen-app').style.display = 'block';
@@ -366,11 +376,39 @@
     $('btnLogin').addEventListener('click', () => doLogin(storagesConfig));
     $('btnRegister').addEventListener('click', () => doRegister(storagesConfig));
 
+    // Pickers de país
+    window._loginPicker = V().createCountryPicker('loginCountryPicker');
+    window._regPicker   = V().createCountryPicker('regCountryPicker');
+
+    // Drawer de cuentas
+    const drawer = V().createAccountsDrawer({
+      onSelect({ countryDial, phoneDigits, countryCode }) {
+        window._loginPicker?.setCode(countryCode);
+        $('loginPhone').value = phoneDigits;
+        switchTab('login');
+      }
+    });
+
+    // Botón de cuentas — solo si hay cuentas guardadas
+    const accounts = V().getLocalAccounts();
+    if (accounts.length) {
+      const btn = $('btn-accounts');
+      if (btn) {
+        btn.style.display = '';
+        const badge = $('acc-badge');
+        if (badge) {
+          badge.textContent = accounts.length;
+          badge.style.display = '';
+        }
+        btn.addEventListener('click', () => drawer.open());
+      }
+    }
+
     // Enter key
-    ['loginDial','loginPhone','loginPass'].forEach(id =>
+    ['loginPhone','loginPass'].forEach(id =>
       $(id).addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(storagesConfig); })
     );
-    ['regName','regDial','regPhone','regPass'].forEach(id =>
+    ['regName','regPhone','regPass'].forEach(id =>
       $(id).addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(storagesConfig); })
     );
 
