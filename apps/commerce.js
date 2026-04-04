@@ -80,7 +80,10 @@
   // F1 — aplicar clase de vista (solo CSS, sin reconstruir DOM)
   function applyViewMode() {
     const g = $('grid');
-    if (g) g.classList.toggle('view-grid', viewMode === 'grid');
+    if (g) {
+      g.classList.toggle('view-list', viewMode === 'list');
+      g.classList.toggle('view-grid', viewMode === 'grid');
+    }
     const vl = $('btn-view-list'), vg = $('btn-view-grid');
     if (vl) vl.classList.toggle('active', viewMode === 'list');
     if (vg) vg.classList.toggle('active', viewMode === 'grid');
