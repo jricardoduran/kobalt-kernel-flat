@@ -143,13 +143,14 @@ Para cada entidad en STORE_PENDING:
 Cuando el kernel llama `remote.put(name, bytes)`:
 
 ```
-DistributedStore.put(nameHex, bytes)
+KobaltConnectors.makeStorages(instances, strategy).put(nameHex, bytes)
   → para cada conector activo (ordenados por prioridad):
-      → buildPhpConnector.put(nameHex, bytes)
-        → fetch(GitLab/gitlab.php?action=blob&name=<hex>, {
+      → makeStorage(session, serviceConfig).put(nameHex, bytes)
+        → fetch(storages/proxy.php?action=blob&name=<hex>, {
             method: POST,
             body: bytes,
-            headers: { Content-Type: application/octet-stream }
+            headers: { Content-Type: application/octet-stream,
+                       X-Kobalt-Token: <token>, X-Kobalt-Window: <window> }
           })
 ```
 
@@ -168,29 +169,47 @@ DistributedStore.put(nameHex, bytes)
 ## 3. Archivos del Proyecto — Qué es cada uno
 
 ```
-kobalt_flat/
+kernel-flat/
 │
-├── index.html                    ← UI completa (login + inventario + config)
-├── app.js                        ← orquestación, sync ≠ repaint, UI logic
+├── index.html                    ← Estructura pura: HTML semántico + carga de scripts
 │
-├── core/kernel_flat.js           ← kernel FLAT v3.2.1 (anchor, derive, entidades,
-│                                    actualidad, cifrado, sync, conflictos)
+├── core/
+│   └── kernel_flat.js            ← Kernel FLAT v3.2.1 (O+M): anchor, derive,
+│                                    entidades, actualidad, cifrado, sync, conflictos
 │
-├── red/connectors.js             ← capa de conectores (KobaltConnectors)
-│                                    timeout, fallback, estrategia
+├── red/
+│   └── connectors.js             ← Infraestructura de red (I): KobaltConnectors
+│                                    load, buildServices, makeStorage, makeStorages
 │
-├── storages/api.php              ← descubrimiento de storages (servidor)
-│                                    action=active | action=list | action=save
+├── visual/
+│   ├── kobalt.css                ← Tokens de marca, temas dark/light, componentes CSS
+│   └── kobalt.visual.js          ← Funciones puras de DOM diferencial (KobaltVisual)
+│                                    setIfChanged, setBadge, toast, show/hide, setView
 │
-├── storages/GitLab/
-│   ├── gitlab.php                ← proxy GitLab (put/get/list/status)
-│   ├── register.html             ← admin UI para servicios GitLab
-│   └── services/
-│       └── kobalt1.json          ← credenciales del servicio (SECRETO)
+├── apps/
+│   └── commerce.js               ← App (orquestación): dominio de inventario,
+│                                    sync ≠ repaint, eventos UI
 │
-└── storages/R2/
-    ├── r2.php                    ← proxy R2 (mismo contrato)
-    └── services/                 ← credenciales R2
+├── auth.php                      ← Servidor S: autentica, computa H_u, entrega services
+├── debug.php                     ← Utilidades de diagnóstico
+│
+└── storages/
+    ├── api.php                   ← Descubrimiento de storages: action=active|list|save
+    ├── proxy.php                 ← Proxy central: enruta a GitLab, R2, PHPHost
+    ├── common.php                ← Helpers compartidos entre proxies
+    ├── store.php                 ← Lógica de almacenamiento
+    ├── register.html             ← Admin UI de servicios
+    ├── GitLab/
+    │   ├── gitlab.php            ← Proxy GitLab (put/get/list/status)
+    │   ├── test.php              ← Test de conectividad
+    │   └── services/
+    │       ├── kobalt1.json      ← Credenciales reales (SECRETO — en .gitignore)
+    │       └── kobalt1.example.json ← Plantilla de configuración
+    ├── R2/
+    │   ├── r2.php                ← Proxy R2 (mismo contrato)
+    │   └── services/             ← Credenciales R2 (en .gitignore)
+    └── PHPHost/
+        └── definition.json       ← Definición del conector PHPHost
 ```
 
 ### Clasificación ontológica
@@ -198,11 +217,16 @@ kobalt_flat/
 | Archivo | Régimen | Clase | Toca payloads? |
 |---------|---------|-------|----------------|
 | core/kernel_flat.js | L | O+M | Sí (cifra/descifra) |
-| red/connectors.js | L→P | I | No (solo bytes) |
-| app.js | L | App | Interpreta payloads |
-| index.html | L | Visual | Presenta payloads |
+| red/connectors.js | L→P | I | No (solo bytes opacos) |
+| visual/kobalt.css | L | I visual | No |
+| visual/kobalt.visual.js | L | I visual | No |
+| apps/commerce.js | L | App | Interpreta payloads |
+| index.html | L | Estructura | Presenta payloads |
+| auth.php | S | S | No (entrega H_u cifrado) |
 | storages/api.php | P | I | No |
+| storages/proxy.php | P | I | No (relay) |
 | storages/GitLab/gitlab.php | P | I | No (relay) |
+| storages/R2/r2.php | P | I | No (relay) |
 
 ---
 
