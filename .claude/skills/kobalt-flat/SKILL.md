@@ -295,6 +295,141 @@ Esa respuesta determina dónde vive y qué tan cuidadoso hay que ser.
 
 ---
 
+### 1.12 Disciplina de observación diferencial — verificar ≠ actualizar
+
+La misma idea algebraica que gobierna el sync de red
+gobierna cualquier actualización de estado en el sistema:
+
+    actualizar ⟺ firma(estado_nuevo) ≠ firma(estado_anterior)
+
+La verificación es barata. La actualización es cara.
+La firma es el guardián entre ambas.
+
+Estas dos variables son independientes:
+
+    frecuencia_de_verificación ≠ frecuencia_de_actualización
+
+Y su relación matemática es siempre:
+
+    n_actualizaciones ≤ n_verificaciones
+    n_actualizaciones = n_cambios_reales
+
+El costo total del sistema es:
+
+    costo = costo(verificación) × n_verificaciones
+          + costo(actualización) × n_cambios_reales
+
+Como costo(verificación) << costo(actualización),
+y n_cambios_reales << n_verificaciones en condiciones normales,
+el sistema puede verificar con alta frecuencia
+manteniendo un costo de actualización mínimo.
+
+La firma desacopla ambas variables.
+Sin firma, verificación y actualización son la misma operación.
+Con firma, se separan y cada una puede optimizarse independientemente.
+
+
+TRES INSTANCIAS EN EL SISTEMA — misma idea, tres contextos:
+
+INSTANCIA 1 — DOM diferencial (I visual)
+  Fuente del estado: datos de entidades en IDB
+  Trigger: sync de red, mutación local
+  Firma: string determinista de los campos visibles
+
+    let _sig = '';
+    function syncUI(data) {
+      const sig = computeSig(data);  // barato: string concat
+      if (sig === _sig) return;      // n - n_cambios iteraciones: nada
+      _sig = sig;
+      render(data);                  // n_cambios iteraciones: DOM
+    }
+
+  Ejemplo real: refreshEntities() con gridSig
+    const sig = JSON.stringify(products.map(p => ({
+      id: p.entityId, sh: p.stateHash, pending: !!pendingMap[p.entityId]
+    })));
+
+INSTANCIA 2 — Sync de red (M mecánica)
+  Fuente del estado: actualidad remota
+  Trigger: intervalo de sync (20s)
+  Firma: mapHash — HMAC del canonical de todas las entidades
+
+    if (mapHash_L === mapHash_R) return 'in_sync';
+    // Solo aquí se hace trabajo real de red
+
+  El sync puede correr cada 20s.
+  Si el estado no cambió, cero operaciones de red.
+  n_operaciones_red = n_cambios_reales, no n_syncs.
+
+INSTANCIA 3 — Estado local (I infraestructura)
+  Fuente del estado: localStorage o IDB
+  Trigger: intervalo liviano + evento storage cross-tab
+  Firma: string de los campos observables del estado local
+
+    let _sig = '';
+    function syncLocalUI() {
+      const sig = localSig();        // barato: leer localStorage + concat
+      if (sig === _sig) return;      // sin cambio: return inmediato
+      _sig = sig;
+      updateUI();                    // solo si algo cambió
+    }
+    setInterval(syncLocalUI, 2000);
+    window.addEventListener('storage', e => {
+      if (e.key === KEY) syncLocalUI();
+    });
+
+  Ejemplo real: syncAccountsUI() con accountsSig()
+    function accountsSig() {
+      return V().getLocalAccounts()
+        .map(a => a.db_id + (a.name||'') + (a.lastSeenAt||0))
+        .join('|');
+    }
+
+  El interval corre cada 2s. Si el estado no cambió en 10 minutos,
+  el DOM no se ha tocado en 10 minutos aunque el interval
+  haya corrido 300 veces.
+
+
+CÓMO DISEÑAR UNA FIRMA:
+
+La firma representa el estado VISIBLE, no el estado completo.
+
+    firma ⊂ estado_total
+    firma = proyección(estado_total, campos_visibles)
+
+Criterios:
+  - Incluir solo los campos que el usuario puede ver
+  - Excluir campos internos no visibles (timestamps internos,
+    flags de procesamiento, metadatos de sync)
+  - Suficientemente específica para detectar cambios reales
+  - Suficientemente compacta para ser barata de computar
+
+Antipatrón:
+  const sig = JSON.stringify(objeto_completo)
+  → Incluye campos no visibles → falsos positivos de repaint
+
+Patrón correcto:
+  const sig = campos_visibles.map(f => objeto[f]).join('|')
+  → Solo lo que el usuario ve → repaint solo cuando importa
+
+
+RELACIÓN CON mapHash:
+
+mapHash es una firma de nivel M (mecánica estructural):
+  mapHash = H(D, canonical(entidades), 32)
+
+Las firmas de nivel I (visual) son instancias más simples
+de la misma idea — sin criptografía porque no necesitan
+resistencia a manipulación, solo detectar cambios:
+  sig = string_determinista(campos_visibles)
+
+La jerarquía de firmas en el sistema:
+  mapHash (M) → integridad criptográfica del universo completo
+  gridSig (I) → detectar cambios en lo visible del grid
+  accountsSig (I) → detectar cambios en cuentas locales
+
+---
+
 ## PARTE 2 — EL FILTRO
 ### Aplicar antes de cualquier decisión de código
 
@@ -381,6 +516,22 @@ I15: asset externo → local-first
      tras la primera carga. La red es el origen, no el hogar permanente.
      Patrón: loadAsset(key, url) → localStorage → fallback al CDN
      Si ves un <img src="https://..."> sin pasar por loadAssetImg → violación.
+
+I17: verificación frecuente, actualización mínima
+     n_actualizaciones = n_cambios_reales ≤ n_verificaciones
+     La frecuencia de verificación no determina la frecuencia
+     de actualización. La firma las desacopla.
+
+I18: la firma proyecta lo visible, no lo total
+     firma ⊂ estado_total
+     firma = proyección(estado_total, campos_visibles_al_usuario)
+     Campos internos no visibles no forman parte de la firma.
+
+I19: el trigger y el guard son responsabilidades separadas
+     El trigger decide cuándo verificar (interval, evento, sync)
+     El guard decide si actualizar (comparación de firmas)
+     Mezclarlos — actualizar directamente en el trigger —
+     viola esta disciplina.
 ```
 
 ---
@@ -432,6 +583,11 @@ I15: asset externo → local-first
 | "doSync() sin await aquí no importa" | Los errores de sync siempre son visibles |
 | "<img src> directo a CDN en cada render" | Usar loadAssetImg para cachear |
 | "<link> a CDN sin caché local"           | Usar loadAssetCSS para cachear |
+| "voy a actualizar el DOM en cada tick del interval" | El trigger llama a syncUI(), no a render() directamente |
+| "voy a escuchar storage y re-renderizar siempre"    | El event listener llama a syncUI() — el guard decide |
+| "la firma incluye todos los campos del objeto"      | Solo los campos visibles al usuario forman la firma |
+| "el interval es lento — el UI tarda en actualizarse" | Combinar interval (same-tab) + storage event (cross-tab) |
+| "necesito actualizar inmediatamente tras acción"    | La acción llama a syncUI() directamente — el guard decide |
 
 ---
 
