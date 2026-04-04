@@ -67,22 +67,39 @@ fetch(connectors_registry.php?action=active)
 **Invariante**: si el servidor no responde, se usa caché de localStorage.
 Si no hay caché, `state.remote = null` → local-only. El boot nunca bloquea.
 
-### Paso 2 — Login (doLogin)
+### Paso 2 — Login (doLogin) y openSession
+
+El servidor (`auth.php`) autentica y devuelve `{ H_u_hex, rawServices }`.
+El cliente llama inmediatamente a `openSession`:
 
 ```
-app.js: doLogin()
-  → K.bootstrapUser({ name, phone, password }, state.remote)
+auth.php → { ok, H_u_hex, services: rawServices }
+              ↓
+app.js: openSession(H_u_hex, rawServices, state.remote)
 ```
 
-`bootstrapUser()` hace:
+`openSession()` hace — **régimen B (puente)**:
 ```
-1. H_u = SHA-256(canonical({name, phone, password}))     ← identidad
-2. db  = openUserStore(H_u)                               ← IDB propia
-3. nodeId = getOrCreateNodeId(db)                         ← instalación
-4. Si remote existe:
-     → intenta leer actualidad remota (blob cifrado)
-     → si encuentra → guarda localmente para sync posterior
-5. Retorna { db, H_u, H_u_hex, nodeId, status }
+1. H_u_bytes = hexToBytes(H_u_hex)
+2. anchor    = H(H_u_bytes, "kobalt:anchor", 32)   ← único secreto de sesión
+3. H_u_bytes = null  ← destruido aquí, nunca entra al régimen L
+4. db        = openUserStore(anchor)               ← IDB propia
+5. nodeId    = getOrCreateNodeId(db)               ← instalación
+6. db_id     = H(D, "db", 8)                       ← D efímero, µs
+7. _storeServiceKeys(rawServices, H_u)             ← re-cifra con D, destruye H_u
+8. connectedStorages = buildServices(session, remote)
+9. Retorna { db, nodeId, db_id, connectedStorages, _anchor, _derive }
+```
+
+**Invariante absoluta**: `H_u` muere dentro de `openSession`. Nunca es campo de session.
+**Invariante absoluta**: `D` nunca se almacena — se computa bajo demanda y muere al salir del scope.
+**Único secreto en sesión**: `_anchor` (Tipo A, toda la sesión en RAM).
+
+`session` resultante:
+```javascript
+{ db, nodeId, db_id, connectedStorages, _anchor, _derive }
+// H_u nunca aparece aquí
+// D nunca aparece aquí
 ```
 
 **Invariante**: el login es local-first. No requiere servidor.
@@ -92,31 +109,33 @@ La recuperación de datos se delega al sync posterior.
 
 ```
 app.js: triggerSync()
-  → K.flushPending(db, H_u_hex, remote)          ← subir pendientes
-  → K.syncActualidad(db, H_u_hex, remote)         ← reconciliar
-  → refreshEntities()                              ← solo si cambió algo
+  → K.flushPending(session, remote)          ← subir pendientes
+  → K.syncActualidad(session, remote)        ← reconciliar
+  → refreshEntities()                        ← solo si cambió algo
 ```
 
 `flushPending()` hace:
 ```
 Para cada entidad en STORE_PENDING:
-  → projectEntityToNetwork(db, H_u, eid, remote)
-  → remote.put(entityId, encryptPayload(payload, H_u))
+  D = session._derive()                       ← efímero, µs
+  → projectEntityToNetwork(session, eid, remote)
+  → remote.put(entityId, encryptPayload(payload, D))
   → clearPending(db, eid)
 ```
 
 `syncActualidad()` hace:
 ```
-1. actName = deriveActualidadName(H_u)                    ← nombre opaco
-2. Leer actualidad remota: remote.get(actName)
-3. Descifrar: deserializeActualidad(blob, H_u)
-4. Comparar mapHash local vs remoto
-5. Si iguales → in_sync, nada que hacer
-6. Si difieren → para cada entidad:
+1. D        = session._derive()               ← efímero
+2. actName  = H(D, "actuality", 8)            ← nombre opaco
+3. Leer actualidad remota: remote.get(actName)
+4. Descifrar: deserializeActualidad(blob, D)
+5. Comparar mapHash local vs remoto
+6. Si iguales → in_sync, nada que hacer
+7. Si difieren → para cada entidad:
      - solo local → push (projectEntityToNetwork)
      - solo remota → pull (pullEntityFromNetwork)
      - ambas, diferente stateHash → el más reciente gana (ts)
-7. Merge actualidades → guardar local + subir merged
+8. Merge actualidades → guardar local + subir merged
 ```
 
 ### Paso 4 — Operación de Storage (via proxy)
@@ -154,25 +173,22 @@ kobalt_flat/
 ├── index.html                    ← UI completa (login + inventario + config)
 ├── app.js                        ← orquestación, sync ≠ repaint, UI logic
 │
-├── kernel_flat.js                ← kernel FLAT (H_u, entidades, actualidad,
-│                                    cifrado, sync, conflictos)
+├── core/kernel_flat.js           ← kernel FLAT v3.2.1 (anchor, derive, entidades,
+│                                    actualidad, cifrado, sync, conflictos)
 │
-├── distributed_store.js          ← capa de conectores (DistributedStore)
+├── red/connectors.js             ← capa de conectores (KobaltConnectors)
 │                                    timeout, fallback, estrategia
 │
-├── connectors_registry.php       ← descubrimiento de storages (servidor)
+├── storages/api.php              ← descubrimiento de storages (servidor)
 │                                    action=active | action=list | action=save
 │
-├── services.runtime.json         ← config de runtime (strategy, sync interval)
-│
-├── GitLab/
+├── storages/GitLab/
 │   ├── gitlab.php                ← proxy GitLab (put/get/list/status)
 │   ├── register.html             ← admin UI para servicios GitLab
-│   ├── register.php              ← admin API (save/list/delete/test)
 │   └── services/
 │       └── kobalt1.json          ← credenciales del servicio (SECRETO)
 │
-└── R2/
+└── storages/R2/
     ├── r2.php                    ← proxy R2 (mismo contrato)
     └── services/                 ← credenciales R2
 ```
@@ -181,13 +197,12 @@ kobalt_flat/
 
 | Archivo | Régimen | Clase | Toca payloads? |
 |---------|---------|-------|----------------|
-| kernel_flat.js | L | O+M | Sí (cifra/descifra) |
-| distributed_store.js | L→P | I | No (solo bytes) |
+| core/kernel_flat.js | L | O+M | Sí (cifra/descifra) |
+| red/connectors.js | L→P | I | No (solo bytes) |
 | app.js | L | App | Interpreta payloads |
 | index.html | L | Visual | Presenta payloads |
-| connectors_registry.php | P | I | No |
-| gitlab.php | P | I | No (relay) |
-| register.php | P | I (admin) | No |
+| storages/api.php | P | I | No |
+| storages/GitLab/gitlab.php | P | I | No (relay) |
 
 ---
 
@@ -207,27 +222,33 @@ GET  ?action=list&prefix=<hex>     → {ok, names: [...], count}
 **Invariante**: el proxy no sabe qué significan los bytes.
 Solo valida que `name` sea hex 16-128 chars.
 
-### Contrato de DistributedStore (L→P)
+### Contrato de KobaltConnectors (L→P)
 
 ```javascript
-remote.put(nameHex, Uint8Array)    → {ok, target, mode, results}
+remote.put(nameHex, Uint8Array)    → void
 remote.get(nameHex)                → Uint8Array | null
 remote.list(prefixHex)             → string[]
-remote.status()                    → {active, strategy, statuses}
+remote.status()                    → object[]
 remote.hasConnectors()             → boolean
 ```
 
 ### Contrato del Kernel (L)
 
 ```javascript
-K.bootstrapUser(registration, remote)
-K.createEntity(db, payload)
-K.saveEntityVersion(db, eid, payload)
-K.flushPending(db, H_u, remote)
-K.syncActualidad(db, H_u, remote)
-K.loadAllEntitiesLocal(db)
-K.loadEntityLocal(db, eid)
-K.listPending(db)
+// Apertura de sesión — régimen B→L
+K.openSession(H_u_hex, rawServices, connectors)
+  // → { db, nodeId, db_id, connectedStorages, _anchor, _derive }
+  // H_u muere aquí. Nunca sale de openSession.
+
+// Operaciones sobre session — régimen L
+K.createEntity(session, payload)
+K.saveEntityVersion(session, eid, payload)
+K.flushPending(session, remote)
+K.syncActualidad(session, remote)
+K.loadAllEntitiesLocal(session)
+K.loadEntityLocal(session, eid)
+K.listPending(session)
+K.closeSession(session)            // destruye _anchor y _derive
 ```
 
 ---
@@ -244,7 +265,7 @@ NuevoTipo/
 └── services/             ← directorio de credenciales
 ```
 
-Luego en `connectors_registry.php`, agregar el tipo al array `$groups`:
+Luego en `storages/api.php`, agregar el tipo al array `$groups`:
 
 ```php
 $groups = [
@@ -264,7 +285,7 @@ $endpoint = match($kind) {
 };
 ```
 
-**Nada más cambia.** `distributed_store.js` ya construye conectores para
+**Nada más cambia.** `red/connectors.js` ya construye conectores para
 cualquier tipo que tenga `url` y `enabled=true`.
 
 ---
@@ -291,12 +312,12 @@ Cada función de render computa una firma del contenido:
 ```javascript
 async function refreshEntities() {
   // ... obtener datos ...
-  
+
   const gridSig = JSON.stringify(products.map(p => ({
     eid: p._eid, ts: p._ts, stateHash: p._stateHash,
     nombre: p.nombre, stock: p.stock, pending: !!pendingMap[p._eid]
   })));
-  
+
   if (state.uiCache.grid !== gridSig) {
     state.uiCache.grid = gridSig;
     renderGrid(products);  // solo aquí se toca el DOM
@@ -323,52 +344,60 @@ setInterval(() => triggerSync({ silent: true }), intervalMs);
 
 ## 7. Fórmulas Matemáticas del Sistema
 
-### Identidad de usuario
+H(key, data, n) = HMAC-SHA-256(key, data)[0..n] — función universal única.
+
+### Cadena de derivación — lineal, irreversible
+
 ```
-H_u = SHA-256(canonical({name, phone, password}))[0..31]
+SERVIDOR:  H_u    = H("kobalt", canonical({name, phone, password}), 32)
+                        ↓ cruza la frontera S→B
+PUENTE:    anchor = H(H_u, "kobalt:anchor", 32)
+           H_u = null  ← destruido aquí
+                        ↓
+LOCAL:     D      = H(anchor, "kobalt:key", 32)   ← Tipo B, µs de vida
+           TODO nace de D
 ```
 
-### Identidad de nodo
-```
-nodeId = SHA-256(nodeSeed)[0..7]
-```
+### Tabla de derivaciones
 
-### Identidad de entidad
 ```
-entityId = SHA-256(nodeId ‖ counter32)[0..7]    ⊥ payload
-```
-
-### Sello de estado
-```
-stateHash = SHA-256(payload)[0..15]             depende de payload
+nodeId      = H(seed,   "kobalt:node",   8)   ← estable en la instalación
+entityId    = H(D,      nodeId ∥ counter, 8)  ← ⊥ payload
+stateHash   = H(D,      payload,         16)  ← depende de payload
+mapHash     = H(D,      canonical(𝒜),   32)  ← resumen del universo visible
+actualityId = H(D,      "actuality",     8)   ← nombre opaco en red
+db_id       = H(D,      "db",            8)   ← prefijo IDB
 ```
 
 ### Actualidad
+
 ```
 𝒜 = {ts, mapHash, entidades: {eid → (stateHash, ts)}}
-mapHash = SHA-256(canonical(entidades))
 ```
 
 ### Guardia compacta
+
 ```
 mapHash_L = mapHash_R  →  nada que hacer
 mapHash_L ≠ mapHash_R  →  reconciliar item por item
 ```
 
 ### Merge
+
 ```
 ∀ eid ∈ L ∪ R:  winner(eid) = argmax_{x∈{L,R}} ts_x(eid)
 ```
 
-### Cifrado de payload para red
+### Cifrado de payload para red (3 capas LIFO)
+
 ```
-blob = t4(4 bytes) ‖ iv(12 bytes) ‖ AES-GCM(HKDF(H_u), payload)
+LOCAL → RED:   semántica → AES-GCM(D) → Opacidad(α)   [α es el ÚLTIMO]
+RED → LOCAL:   des-α → AES-GCM⁻¹(D) → semántica       [des-α es el PRIMERO]
+
+blob = tag(4) ‖ iv(12) ‖ AES-GCM(D, payload)
 ```
 
-### Nombre de actualidad en red
-```
-actName = H_u[0..10] ‖ TYPE_ACT    →  24 hex chars
-```
+**Invariante**: fromNetwork(toNetwork(x)) = x
 
 ---
 
@@ -376,15 +405,18 @@ actName = H_u[0..10] ‖ TYPE_ACT    →  24 hex chars
 
 | # | Invariante | Verificación |
 |---|-----------|--------------|
-| I1 | entityId ⊥ payload | entityId = H(nodeId‖counter), no H(payload) |
-| I2 | stateHash depende de payload | stateHash = H(payload) |
-| I3 | La red no ve payloads claros | AES-GCM antes de put |
-| I4 | Sin conectores → operativo en local | bootstrapUser retorna db siempre |
-| I5 | Login no bloqueado por latencia | bootstrapUser es local-first |
-| I6 | mapHash coincide → no hay trabajo | comparación O(1) en syncActualidad |
-| I7 | Sync ≠ repaint | uiCache con firmas, setIfChanged |
-| I8 | P no interpreta payloads | gitlab.php es relay puro |
-| I9 | Agregar storage no toca código existente | Solo nuevo dir + 2 líneas en registry |
+| I1 | entityId ⊥ payload | entityId = H(D, nodeId‖counter, 8), no H(payload) |
+| I2 | stateHash depende de payload | stateHash = H(D, payload, 16) |
+| I3 | La red no ve payloads claros | AES-GCM(D) + α antes de put |
+| I4 | H_u nunca entra al régimen L | H_u = null al final del régimen B (openSession) |
+| I5 | D nunca persiste | D se computa bajo demanda, muere al salir del scope |
+| I6 | anchor es el único secreto de sesión | session = {…, _anchor, _derive} — sin H_u, sin D |
+| I7 | Sin conectores → operativo en local | openSession retorna db siempre |
+| I8 | Login no bloqueado por latencia | openSession es local-first |
+| I9 | mapHash coincide → no hay trabajo | comparación O(1) en syncActualidad |
+| I10 | Sync ≠ repaint | uiCache con firmas, setIfChanged |
+| I11 | P no interpreta payloads | gitlab.php es relay puro |
+| I12 | Agregar storage no toca código existente | Solo nuevo dir + 2 líneas en registry |
 
 ---
 
@@ -395,25 +427,28 @@ actName = H_u[0..10] ‖ TYPE_ACT    →  24 hex chars
 ```
 phone_norm = countryDial ‖ digits(phone)
 name_norm  = lowercase(trim(name))
-phone_hmac = HMAC("kobalt:phone", phone_norm)     ← clave de búsqueda
-H_u        = HMAC("kobalt", canonical({name: name_norm, password, phone: phone_norm}))
+phone_hmac = H("kobalt:phone", phone_norm, 32)     ← clave de búsqueda
+H_u        = H("kobalt", canonical({name: name_norm, password, phone: phone_norm}), 32)
 
 Si phone_hmac ya existe → 409 (ya registrado)
-Si no → guardar {phone_hmac, name_norm, phone_norm, H_u, countryCode}
-Retornar → {ok, H_u, services}
+Si no → guardar {phone_hmac, name_norm, phone_norm, H_u_enc, countryCode}
+Retornar → {ok, H_u_hex, services: rawServices}
 ```
 
 ### Login (requiere teléfono + contraseña + código de país — NO nombre)
 
 ```
 phone_norm = countryDial ‖ digits(phone)
-phone_hmac = HMAC("kobalt:phone", phone_norm)     ← buscar
+phone_hmac = H("kobalt:phone", phone_norm, 32)     ← buscar
 record     = findByPhoneHmac(users, phone_hmac)
 
 Si no existe → 401 (no registrado)
-H_u_check  = HMAC("kobalt", canonical({name: record.name_norm, password, phone: phone_norm}))
+H_u_check  = H("kobalt", canonical({name: record.name_norm, password, phone: phone_norm}), 32)
 Si H_u_check ≠ record.H_u → 401 (clave incorrecta)
-Si match → {ok, H_u, services}
+Si match → {ok, H_u_hex, services: rawServices}
+              ↓
+app.js llama openSession(H_u_hex, rawServices, connectors)
+H_u muere en openSession. Nunca entra al régimen L.
 ```
 
 ### Propiedades
