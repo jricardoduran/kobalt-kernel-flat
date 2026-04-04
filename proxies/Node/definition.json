@@ -1,0 +1,13 @@
+{
+  "id":       "node-js",
+  "label":    "Node / JS",
+  "accent":   "#7B4FE0",
+  "runtime":  "js",
+  "note":     "Proxy JavaScript. Vercel Edge Functions, Deno Deploy o Cloudflare Workers.",
+  "connector": "./proxies/Node/proxy.php",
+  "fields": [
+    { "id": "label",    "label": "Etiqueta",  "type": "text",   "required": false, "placeholder": "Vercel Edge" },
+    { "id": "url",      "label": "URL",       "type": "text",   "required": true,  "placeholder": "https://kobalt.vercel.app/api/proxy" },
+    { "id": "priority", "label": "Prioridad", "type": "number", "required": false, "default": 50 }
+  ]
+}

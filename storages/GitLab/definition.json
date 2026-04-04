@@ -1,0 +1,54 @@
+{
+  "id": "gitlab",
+  "label": "GitLab",
+  "accent": "#fc6d26",
+  "connector": "./storages/proxy.php",
+  "fields": [
+    {
+      "id": "label",
+      "label": "Etiqueta",
+      "type": "text",
+      "required": false,
+      "placeholder": "Mi proyecto GitLab"
+    },
+    {
+      "id": "project_id",
+      "label": "Project ID",
+      "type": "text",
+      "required": true,
+      "placeholder": "12345678",
+      "hint": "Número bajo el nombre del proyecto en GitLab"
+    },
+    {
+      "id": "token",
+      "label": "Access Token",
+      "type": "password",
+      "required": true,
+      "placeholder": "glpat-...",
+      "hint": "Settings → Access Tokens → scope: api"
+    },
+    {
+      "id": "branch",
+      "label": "Rama",
+      "type": "text",
+      "required": false,
+      "default": "main",
+      "half": true
+    },
+    {
+      "id": "base_path",
+      "label": "Carpeta base",
+      "type": "text",
+      "required": false,
+      "default": "kobalt_data",
+      "half": true
+    },
+    {
+      "id": "priority",
+      "label": "Prioridad",
+      "type": "number",
+      "required": false,
+      "default": 10
+    }
+  ]
+}

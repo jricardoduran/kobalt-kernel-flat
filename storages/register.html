@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kobalt · Storage Admin</title>
+  <style>
+    /* ── TOKENS ── */
+    :root {
+      --bg:   #0a0c0f;
+      --sf:   #111318;
+      --bd:   #1e2229;
+      --bd2:  #2a3040;
+      --tx:   #c8cdd6;
+      --dim:  #52596a;
+      --ac:   #f6821f;
+      --ok:   #22c55e;
+      --err:  #ef4444;
+      --mono: 'IBM Plex Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--tx);
+      font: 14px/1.5 system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── AUTH GATE ── */
+    #gate {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 99;
+    }
+
+    .auth-box {
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: 8px;
+      padding: 32px;
+      width: min(320px, 90vw);
+    }
+
+    .auth-box h2 {
+      font: 600 11px var(--mono);
+      letter-spacing: .12em;
+      color: var(--ac);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      border-bottom: 1px solid var(--bd);
+      padding: 14px 20px;
+    }
+
+    .logo {
+      font: 600 12px var(--mono);
+      letter-spacing: .1em;
+      color: var(--ac);
+    }
+
+    .logo span { color: var(--dim); font-weight: 400; }
+
+    /* ── LAYOUT ── */
+    main {
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+
+    /* ── TABS ── */
+    #tabs {
+      display: flex;
+      gap: 2px;
+      border-bottom: 1px solid var(--bd);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 9px 18px;
+      font: 500 10px var(--mono);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--dim);
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color .15s, border-color .15s;
+    }
+
+    /* ── PANEL ── */
+    .panel {
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: 6px;
+      margin-bottom: 14px;
+    }
+
+    .ph {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--bd);
+      font: 600 10px var(--mono);
+      letter-spacing: .1em;
+      color: var(--dim);
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pb { padding: 16px; }
+
+    /* ── FIELDS ── */
+    .f { margin-bottom: 11px; }
+
+    label {
+      display: block;
+      font: 500 10px var(--mono);
+      letter-spacing: .1em;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    input[type=text],
+    input[type=password],
+    input[type=number] {
+      width: 100%;
+      padding: 8px 10px;
+      background: var(--bg);
+      border: 1px solid var(--bd2);
+      border-radius: 4px;
+      color: var(--tx);
+      font: 12px var(--mono);
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    input:focus { border-color: var(--ac); }
+    input::placeholder { color: var(--dim); }
+
+    .hint {
+      font: 10px var(--mono);
+      color: var(--dim);
+      margin-top: 4px;
+    }
+
+    .row2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 11px;
+    }
+
+    /* ── TOGGLE ── */
+    .tog-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 6px 0 14px;
+    }
+
+    .tog {
+      position: relative;
+      width: 34px; height: 18px;
+      flex-shrink: 0;
+    }
+
+    .tog input { opacity: 0; width: 0; height: 0; position: absolute; }
+
+    .sl {
+      position: absolute; inset: 0;
+      background: var(--bd2);
+      border-radius: 18px;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    .sl::before {
+      content: '';
+      position: absolute;
+      left: 3px; top: 3px;
+      width: 12px; height: 12px;
+      background: var(--dim);
+      border-radius: 50%;
+      transition: .2s;
+    }
+
+    input:checked + .sl { background: var(--ac); }
+    input:checked + .sl::before { transform: translateX(16px); background: #fff; }
+
+    .tog-lbl { font: 13px system-ui; color: var(--tx); }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 13px;
+      border-radius: 4px;
+      font: 500 10px var(--mono);
+      letter-spacing: .06em;
+      cursor: pointer;
+      border: none;
+      transition: opacity .15s;
+    }
+
+    .btn:active { opacity: .75; }
+    .btn-p { background: var(--ac); color: #fff; width: 100%; justify-content: center; margin-top: 4px; }
+    .btn-g { background: transparent; color: var(--dim); border: 1px solid var(--bd2); }
+    .btn-g:hover { color: var(--tx); }
+    .btn-sm { padding: 4px 10px; }
+
+    /* ── SERVICE CARDS ── */
+    .card {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 11px 13px;
+      border: 1px solid var(--bd);
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); flex-shrink: 0; }
+    .dot.on { background: var(--ok); box-shadow: 0 0 5px var(--ok); }
+
+    .si { flex: 1; min-width: 0; }
+    .si-id { font: 11px var(--mono); color: var(--tx); }
+    .si-meta {
+      font: 10px var(--mono);
+      color: var(--dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .sa { display: flex; gap: 4px; }
+
+    .ib {
+      background: none;
+      border: none;
+      color: var(--dim);
+      font-size: 13px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 3px;
+      line-height: 1;
+    }
+
+    .ib:hover { color: var(--tx); }
+    .ib.del:hover { color: var(--err); }
+
+    /* ── STATUS LINE ── */
+    .st {
+      padding: 9px 16px;
+      border-top: 1px solid var(--bd);
+      font: 11px var(--mono);
+      color: var(--dim);
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+    }
+
+    .ok   { color: var(--ok); }
+    .err  { color: var(--err); }
+    .info { color: var(--ac); }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+    .blink { animation: pulse .9s infinite; }
+
+    .empty {
+      text-align: center;
+      padding: 22px;
+      color: var(--dim);
+      font: 11px var(--mono);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── AUTH GATE ── -->
+  <div id="gate">
+    <div class="auth-box">
+      <h2>Kobalt · Storage Admin</h2>
+      <div class="f">
+        <label for="auth-pass">Contraseña</label>
+        <input type="password" id="auth-pass" placeholder="••••••••" autofocus>
+      </div>
+      <p id="auth-err" style="color:var(--err);font:11px var(--mono);margin-bottom:10px;display:none;">
+        Contraseña incorrecta
+      </p>
+      <button class="btn btn-p" onclick="doAuth()">ENTRAR</button>
+    </div>
+  </div>
+
+  <!-- ── HEADER ── -->
+  <header>
+    <div class="logo">KOBALT <span>/ storage registry</span></div>
+  </header>
+
+  <!-- ── MAIN ── -->
+  <main>
+
+    <!-- Tabs — se construyen dinámicamente -->
+    <div id="tabs">
+      <span style="font:11px var(--mono);color:var(--dim);padding:9px 4px;" class="blink">Cargando tipos...</span>
+    </div>
+
+    <!-- Panel: Formulario de registro -->
+    <div class="panel">
+      <div class="ph">
+        <span id="form-title">Registrar servicio</span>
+        <button class="btn btn-g btn-sm" onclick="clearForm()">Limpiar</button>
+      </div>
+      <div class="pb">
+        <div id="form-fields">—</div>
+      </div>
+      <div class="st" id="form-status">Listo para registrar</div>
+    </div>
+
+    <!-- Panel: Servicios registrados -->
+    <div class="panel">
+      <div class="ph">
+        <span>Servicios registrados</span>
+        <button class="btn btn-g btn-sm" onclick="loadServices()">↺</button>
+      </div>
+      <div class="pb" id="services-list">—</div>
+      <div class="st" id="list-status">—</div>
+    </div>
+
+  </main>
+
+  <script>
+    /*
+     * register.html — Shell genérico puro
+     *
+     * Este archivo no sabe nada de R2, GitLab ni PHPHost.
+     * Todo lo aprende dinámicamente de services_api.php?action=types
+     * que a su vez lee los definition.json de cada carpeta de tipo.
+     *
+     * Para añadir un tipo nuevo de storage:
+     *   1. Crear carpeta storages/NuevoTipo/
+     *   2. Crear definition.json
+     *   3. Crear register.php
+     *   4. Crear el endpoint (connector o store)
+     *   → Este archivo lo descubre solo. Sin tocar nada aquí.
+     */
+
+    let PASS    = '';   // HMAC hex pre-computado [64 chars] — nunca el password
+    let TYPES   = [];
+    let CURRENT = null;
+
+    // ── HMAC WebCrypto ─────────────────────────────────────────────
+    // JS computa HMAC(password, KEY) una vez al login.
+    // Resultado: hex de 64 chars que se envía como _k en cada request.
+    // PHP solo compara: hash_equals(HASH_ALMACENADO, _k). Sin KEY en PHP.
+    const HMAC_KEY = 'PACARINAS2026';
+
+    async function computeHmacHex(password) {
+      const enc = new TextEncoder();
+      const key = await crypto.subtle.importKey(
+        'raw', enc.encode(HMAC_KEY),
+        { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+      );
+      const sig  = await crypto.subtle.sign('HMAC', key, enc.encode(password));
+      return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
+    // ── AUTH ──────────────────────────────────────────────────────
+    async function doAuth() {
+      const rawPass = document.getElementById('auth-pass').value;
+      if (!rawPass) return;
+      // Computar HMAC localmente — el password nunca sale del navegador
+      PASS = await computeHmacHex(rawPass);
+      apiFetch('api.php', 'types')
+        .then(d => {
+          if (d.ok === false) {
+            document.getElementById('auth-err').style.display = 'block';
+            PASS = '';
+            return;
+          }
+          document.getElementById('gate').style.display = 'none';
+          TYPES = d.types || [];
+          buildTabs();
+          if (TYPES.length) switchType(TYPES[0], document.querySelector('.tab'));
+        })
+        .catch(() => {
+          document.getElementById('auth-err').style.display = 'block';
+          PASS = '';
+        });
+    }
+
+    document.getElementById('auth-pass').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doAuth();
+    });
+
+    // ── TABS ──────────────────────────────────────────────────────
+    function buildTabs() {
+      const container = document.getElementById('tabs');
+      container.innerHTML = TYPES.map((t, i) =>
+        `<button class="tab" onclick="switchType(TYPES[${i}], this)">${t.label}</button>`
+      ).join('');
+    }
+
+    function switchType(def, el) {
+      CURRENT = def;
+
+      // Reset + activar tab
+      document.querySelectorAll('.tab').forEach(t => {
+        t.style.color = 'var(--dim)';
+        t.style.borderBottomColor = 'transparent';
+      });
+      if (el) {
+        el.style.color = def.accent || 'var(--ac)';
+        el.style.borderBottomColor = def.accent || 'var(--ac)';
+      }
+
+      // Accent dinámico
+      document.documentElement.style.setProperty('--ac', def.accent || '#f6821f');
+      document.getElementById('form-title').textContent = 'Registrar servicio ' + def.label;
+
+      buildForm(def.fields || []);
+      loadServices();
+    }
+
+    // ── FORMULARIO ────────────────────────────────────────────────
+    function buildForm(fields) {
+      let html = '';
+      let i = 0;
+
+      while (i < fields.length) {
+        const f = fields[i];
+        const next = fields[i + 1];
+
+        if (f.half && next && next.half) {
+          html += `<div class="row2">${fieldHtml(f)}${fieldHtml(next)}</div>`;
+          i += 2;
+        } else {
+          html += `<div class="f">${fieldHtml(f)}</div>`;
+          i++;
+        }
+      }
+
+      // Toggle habilitado — siempre presente
+      html += `
+        <div class="tog-row">
+          <label class="tog">
+            <input type="checkbox" id="f-enabled" checked>
+            <span class="sl"></span>
+          </label>
+          <span class="tog-lbl">Habilitado</span>
+        </div>
+        <button class="btn btn-p" onclick="saveService()">▶ PROBAR Y GUARDAR</button>
+      `;
+
+      document.getElementById('form-fields').innerHTML = html;
+      setFormStatus('Listo para registrar');
+    }
+
+    function fieldHtml(f) {
+      const val  = f.default !== undefined ? f.default : '';
+      const ph   = f.placeholder || '';
+      const req  = f.required ? ' *' : '';
+      const hint = f.hint ? `<div class="hint">${f.hint}</div>` : '';
+      return `
+        <label for="f-${f.id}">${f.label}${req}</label>
+        <input type="${f.type || 'text'}" id="f-${f.id}" placeholder="${ph}" value="${val}">
+        ${hint}
+      `;
+    }
+
+    // ── PAYLOAD ───────────────────────────────────────────────────
+    function buildPayload() {
+      if (!CURRENT) return null;
+
+      const payload = {
+        type:    CURRENT.id,
+        enabled: document.getElementById('f-enabled').checked,
+      };
+
+      for (const f of CURRENT.fields) {
+        const el = document.getElementById('f-' + f.id);
+        if (!el) continue;
+        const raw = el.value.trim();
+        const val = f.type === 'number' ? (parseInt(raw) || f.default || 10) : raw;
+        if (f.required && !val) return null;
+        payload[f.id] = val;
+      }
+
+      // id: derivado del label o primer campo requerido
+      const labelVal = payload['label'];
+      const firstReq = CURRENT.fields.find(f => f.required);
+      const base     = labelVal || (firstReq ? payload[firstReq.id] : CURRENT.id) || CURRENT.id;
+      payload.id          = base.toLowerCase().replace(/[^a-z0-9_-]/g, '_').slice(0, 32);
+      payload.created_at  = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+      return payload;
+    }
+
+    // ── GUARDAR: save → test → confirmar o revertir ───────────────
+    function saveService() {
+      const payload = buildPayload();
+      if (!payload) { setFormStatus('Faltan campos obligatorios', 'err'); return; }
+
+      setFormStatus('▪ Guardando credenciales...', 'info');
+
+      fetch('api.php?action=save&type=' + CURRENT.id + '&_k=' + encodeURIComponent(PASS), {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ ...payload, _k: PASS }),
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (!d.ok) { setFormStatus(d.error || 'Error al guardar', 'err'); return; }
+
+        setFormStatus('▪ Probando conexión real...', 'info');
+
+        return fetch('api.php?action=test&type=' + CURRENT.id + '&service=' + encodeURIComponent(payload.id) + '&_k=' + encodeURIComponent(PASS))
+        .then(r => r.json())
+        .then(t => {
+          if (t.ok) {
+            setFormStatus('✓ Conexión verificada — servicio registrado', 'ok');
+            clearForm();
+            loadServices();
+          } else {
+            // Test falló → revertir
+            fetch('api.php?action=delete&type=' + CURRENT.id + '&_k=' + encodeURIComponent(PASS), {
+              method:  'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body:    JSON.stringify({ id: payload.id, _k: PASS }),
+            });
+            setFormStatus('✗ Conexión falló — no registrado: ' + (t.error || 'error'), 'err');
+          }
+        });
+      })
+      .catch(e => setFormStatus('Error: ' + e.message, 'err'));
+    }
+
+    // ── LIST ──────────────────────────────────────────────────────
+    function loadServices() {
+      if (!CURRENT) return;
+      setListStatus('▪ Cargando...', 'info');
+
+      apiFetch('api.php', 'list', { type: CURRENT.id })
+        .then(d => {
+          renderServices(d.services || []);
+          setListStatus((d.services || []).length + ' servicio(s)');
+        })
+        .catch(e => setListStatus('Error: ' + e.message, 'err'));
+    }
+
+    function renderServices(list) {
+      const el = document.getElementById('services-list');
+      if (!list.length) {
+        el.innerHTML = '<div class="empty">Sin servicios registrados</div>';
+        return;
+      }
+      el.innerHTML = list.map(s => `
+        <div class="card">
+          <div class="dot ${s.enabled ? 'on' : ''}"></div>
+          <div class="si">
+            <div class="si-id">${s.label || s.id}</div>
+            <div class="si-meta">${s.id} · prioridad ${s.priority}</div>
+          </div>
+          <div class="sa">
+            <button class="ib" onclick="testService('${s.id}')" title="Probar">⚡</button>
+            <button class="ib del" onclick="deleteService('${s.id}')" title="Eliminar">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function testService(id) {
+      setListStatus('▪ Probando ' + id + '...', 'info');
+      fetch('api.php?action=test&type=' + CURRENT.id + '&service=' + encodeURIComponent(id) + '&_k=' + encodeURIComponent(PASS))
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok) setListStatus('✓ ' + id + ': conexión OK', 'ok');
+        else      setListStatus('✗ ' + id + ': ' + (d.error || 'error'), 'err');
+      })
+      .catch(e => setListStatus('Error: ' + e.message, 'err'));
+    }
+
+    function deleteService(id) {
+      if (!confirm('¿Eliminar \'' + id + '\'?')) return;
+      fetch('api.php?action=delete&type=' + CURRENT.id + '&_k=' + encodeURIComponent(PASS), {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ id, _k: PASS }),
+      })
+      .then(r => r.json())
+      .then(d => { if (d.ok) loadServices(); });
+    }
+
+    // ── UTILS ─────────────────────────────────────────────────────
+    function clearForm() {
+      if (!CURRENT) return;
+      CURRENT.fields.forEach(f => {
+        const el = document.getElementById('f-' + f.id);
+        if (!el) return;
+        el.value = f.default !== undefined ? String(f.default) : '';
+      });
+      const en = document.getElementById('f-enabled');
+      if (en) en.checked = true;
+      setFormStatus('Listo para registrar');
+    }
+
+    function setFormStatus(msg, cls = '') {
+      document.getElementById('form-status').innerHTML =
+        cls ? `<span class="${cls}">${msg}</span>` : msg;
+    }
+
+    function setListStatus(msg, cls = '') {
+      document.getElementById('list-status').innerHTML =
+        cls ? `<span class="${cls}">${msg}</span>` : msg;
+    }
+
+    function apiFetch(file, action, extra = {}) {
+      // Auth via _k param en la URL — funciona en todos los hostings sin excepción
+      // (los headers HTTP personalizados son filtrados en hosting compartido)
+      const params = new URLSearchParams({ action, _k: PASS, ...extra });
+      return fetch(file + '?' + params).then(r => r.json());
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kobalt Red FLAT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══ 1. PRIMITIVOS DE MARCA ═══ */
+:root{
+  --p-cyan:#29C5F6;--p-blue:#4D6AF7;--p-purple:#7B4FE0;
+  --p-magenta:#D946A8;--p-pink:#F25C8A;--p-orange:#F7971E;
+  --ok:#5CD9A0;--warn:#F0C24E;--err:#F47080;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --r-lg:18px;--r-md:12px;--r-sm:8px;
+  --k-gh:linear-gradient(90deg,var(--p-cyan),var(--p-blue),var(--p-purple));
+  --k-gb:conic-gradient(from 180deg,var(--p-cyan),var(--p-blue),var(--p-purple),var(--p-magenta),var(--p-pink),var(--p-orange),var(--p-cyan));
+  --drawer-w:340px;
+}
+
+/* ═══ 2. TEMA OSCURO (predeterminado) ═══ */
+:root,[data-theme="dark"]{
+  --page-bg:#050C18;--surface:#050C18;--surface-raised:#091220;
+  --surface-overlay:#0D182C;--surface-high:#111E36;
+  --text-primary:#E9EEF8;--text-secondary:#C8D2E8;--text-muted:#7A8DB8;
+  --border-default:rgba(41,197,246,.12);--border-subtle:rgba(41,197,246,.06);
+  --accent:#4D6AF7;--accent-dim:rgba(77,106,247,.10);--accent-glow:rgba(77,106,247,.22);
+  --nav-bg:rgba(5,12,24,.94);--card-bg:#091220;
+  --shadow-md:0 4px 20px rgba(0,0,0,.45);--shadow-drawer:-8px 0 48px rgba(0,0,0,.55);
+  --page-radial:radial-gradient(ellipse at 18% 22%,rgba(41,197,246,.04) 0%,transparent 52%),radial-gradient(ellipse at 82% 78%,rgba(123,79,224,.035) 0%,transparent 52%);
+  --input-bg:#091220;--input-border:rgba(41,197,246,.11);
+  --input-focus-border:#4D6AF7;--input-focus-glow:rgba(77,106,247,.14);
+  --sparkle-color:rgba(77,106,247,.14);
+  --btn-primary-shadow:0 4px 18px rgba(77,106,247,.32);
+  --badge-ok-bg:rgba(92,217,160,.09);--badge-ok-color:#5CD9A0;--badge-ok-border:rgba(92,217,160,.22);
+  --badge-warn-bg:rgba(240,194,78,.09);--badge-warn-color:#F0C24E;--badge-warn-border:rgba(240,194,78,.22);
+  --badge-err-bg:rgba(244,112,128,.09);--badge-err-color:#F47080;--badge-err-border:rgba(244,112,128,.22);
+  --drawer-overlay-bg:rgba(0,0,0,.45);
+}
+
+/* ═══ 3. TEMA CLARO ═══ */
+[data-theme="light"]{
+  --page-bg:#F3F0FA;--surface:#F3F0FA;--surface-raised:#FFFFFF;
+  --surface-overlay:#EDE9F7;--surface-high:#E4E0F2;
+  --text-primary:#18102A;--text-secondary:#2A1A46;--text-muted:#7C7492;
+  --border-default:rgba(123,79,224,.12);--border-subtle:rgba(123,79,224,.06);
+  --accent:#7B4FE0;--accent-dim:rgba(123,79,224,.08);--accent-glow:rgba(123,79,224,.18);
+  --nav-bg:rgba(255,255,255,.94);--card-bg:#FFFFFF;
+  --shadow-md:0 4px 20px rgba(80,60,140,.12);--shadow-drawer:-8px 0 48px rgba(80,60,140,.16);
+  --page-radial:radial-gradient(ellipse at 18% 22%,rgba(123,79,224,.055) 0%,transparent 52%),radial-gradient(ellipse at 82% 78%,rgba(41,197,246,.035) 0%,transparent 52%);
+  --input-bg:#EEEBF8;--input-border:rgba(123,79,224,.12);
+  --input-focus-border:#7B4FE0;--input-focus-glow:rgba(123,79,224,.10);
+  --sparkle-color:rgba(123,79,224,.14);
+  --btn-primary-shadow:0 4px 18px rgba(123,79,224,.24);
+  --badge-ok-bg:rgba(92,217,160,.10);--badge-ok-color:#1F7A4F;--badge-ok-border:rgba(92,217,160,.26);
+  --badge-warn-bg:rgba(240,194,78,.10);--badge-warn-color:#7A5200;--badge-warn-border:rgba(240,194,78,.26);
+  --badge-err-bg:rgba(244,112,128,.10);--badge-err-color:#A8202F;--badge-err-border:rgba(244,112,128,.26);
+  --drawer-overlay-bg:rgba(40,18,72,.18);
+}
+
+/* ═══ 4. RESET + BASE ═══ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--page-bg);color:var(--text-primary);min-height:100vh;line-height:1.55;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border-default);border-radius:3px}
+@keyframes k-sparkle{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:1;transform:scale(1.5)}}
+@keyframes k-spin{to{transform:rotate(360deg)}}
+
+/* ═══ 5. FONDO DECORATIVO ═══ */
+.bg-wrap{position:fixed;inset:0;pointer-events:none;z-index:0}
+.bg-wrap::before{content:'';position:absolute;inset:0;background:var(--page-radial)}
+.spark{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--sparkle-color);animation:k-sparkle 4s ease-in-out infinite}
+
+/* ═══ 6. NAVBAR ═══ */
+.nav{position:fixed;top:0;left:0;right:0;height:52px;z-index:100;background:var(--nav-bg);border-bottom:1px solid var(--border-subtle);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+.nav-logo{font-size:.95rem;font-weight:800;letter-spacing:-.03em;background:var(--k-gh);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nav-right{display:flex;align-items:center;gap:8px}
+.btn-theme{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:var(--r-sm);background:var(--surface-overlay);border:1px solid var(--border-default);font-size:.72rem;font-weight:600;color:var(--text-muted);cursor:pointer;font-family:var(--font-body);transition:color .18s}
+.btn-theme:hover{color:var(--text-primary)}
+
+/* ═══ 7. LOGIN CARD ═══ */
+.page{position:relative;z-index:1;min-height:100vh;padding:72px 20px 40px;display:flex;align-items:flex-start;justify-content:center}
+.login-wrap{width:100%;max-width:440px}
+.login-card{position:relative;background:var(--surface-raised);border-radius:var(--r-lg);box-shadow:var(--shadow-md);overflow:hidden}
+.login-card::before{content:'';position:absolute;inset:0;border-radius:var(--r-lg);padding:1.5px;background:var(--k-gb);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;z-index:2}
+
+/* ═══ 8. TABS ═══ */
+.tab-switcher{display:grid;grid-template-columns:1fr 1fr;background:var(--surface-overlay);border-bottom:1px solid var(--border-subtle);position:relative;z-index:1}
+.tab-btn{padding:16px 12px;background:none;border:none;font-family:var(--font-body);font-size:.92rem;font-weight:700;color:var(--text-muted);cursor:pointer;transition:color .2s,background .2s;position:relative}
+.tab-btn:first-child{border-right:1px solid var(--border-subtle)}
+.tab-btn:hover{color:var(--text-secondary)}
+.tab-btn.active{background:var(--surface-raised);color:var(--text-primary)}
+.tab-btn.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--k-gh)}
+.tab-body{padding:24px 24px 18px}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* ═══ 9. FORM ═══ */
+.form-stack{display:grid;gap:14px}
+.field{display:grid;gap:4px}
+.field label{font-size:.66rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted)}
+.field .hint{font-size:.65rem;color:var(--text-muted);opacity:.6;margin-top:1px}
+.k-input{font-family:var(--font-body);font-size:.86rem;width:100%;padding:10px 13px;background:var(--input-bg);border:1px solid var(--input-border);border-radius:var(--r-sm);color:var(--text-primary);transition:border-color .2s,box-shadow .2s;outline:none;-webkit-appearance:none}
+.k-input:focus{border-color:var(--input-focus-border);box-shadow:0 0 0 3px var(--input-focus-glow)}
+.k-input::placeholder{color:var(--text-muted);opacity:.4}
+.phone-row{display:grid;grid-template-columns:110px 1fr;gap:10px}
+@media(max-width:380px){.phone-row{grid-template-columns:1fr}}
+.btn-primary{width:100%;padding:12px;background:var(--k-gh);border:none;border-radius:var(--r-sm);color:#fff;font-family:var(--font-body);font-size:.88rem;font-weight:700;cursor:pointer;box-shadow:var(--btn-primary-shadow);transition:transform .15s,box-shadow .2s;margin-top:4px}
+.btn-primary:hover{transform:translateY(-1px)}.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.link-btn{background:none;border:none;color:var(--accent);font-size:.74rem;font-weight:600;cursor:pointer;text-decoration:underline;padding:0;font-family:var(--font-body)}
+.tab-hint{font-size:.74rem;color:var(--text-muted);text-align:center;margin-top:4px}
+
+/* ═══ 10. STATUS ═══ */
+#statusOut{margin:0 24px 14px;display:none;padding:9px 13px;border-radius:var(--r-sm);font-size:.76rem;font-weight:500;line-height:1.5;align-items:flex-start;gap:7px}
+#statusOut.visible{display:flex}
+#statusOut::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:5px}
+#statusOut.st-ok{background:var(--badge-ok-bg);color:var(--badge-ok-color);border:1px solid var(--badge-ok-border)}
+#statusOut.st-warn{background:var(--badge-warn-bg);color:var(--badge-warn-color);border:1px solid var(--badge-warn-border)}
+#statusOut.st-err{background:var(--badge-err-bg);color:var(--badge-err-color);border:1px solid var(--badge-err-border)}
+#statusOut.st-ok::before{background:var(--ok)}
+#statusOut.st-warn::before{background:var(--warn)}
+#statusOut.st-err::before{background:var(--err)}
+
+/* ═══ 11. APP SCREEN ═══ */
+#screen-app{display:none;max-width:900px;margin:0 auto;padding:64px 20px 40px}
+.app-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:12px 0;border-bottom:1px solid var(--border-subtle)}
+.badge{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.5px;padding:3px 8px;border-radius:4px;border:1px solid}
+.badge-ok{color:var(--badge-ok-color);border-color:var(--badge-ok-border);background:var(--badge-ok-bg)}
+.badge-warn{color:var(--badge-warn-color);border-color:var(--badge-warn-border);background:var(--badge-warn-bg)}
+.badge-err{color:var(--badge-err-color);border-color:var(--badge-err-border);background:var(--badge-err-bg)}
+.btn{background:var(--surface-overlay);border:1px solid var(--border-default);color:var(--text-muted);font-family:var(--font-body);font-size:.72rem;padding:6px 14px;border-radius:var(--r-sm);cursor:pointer;transition:all .15s;font-weight:600}
+.btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+
+/* ═══ 12. GRID INVENTARIO ═══ */
+#add-bar{background:var(--surface-overlay);border:1px solid rgba(92,217,160,.15);border-radius:var(--r-sm);padding:12px;margin-bottom:14px;display:none;flex-wrap:wrap;gap:8px;align-items:center}
+#add-bar.open{display:flex}
+#add-bar input{background:var(--input-bg);border:1px solid var(--input-border);color:var(--text-primary);font-family:var(--font-body);font-size:.82rem;padding:6px 10px;border-radius:4px;outline:none}
+#add-bar input:focus{border-color:var(--input-focus-border)}
+.btn-add{background:var(--ok);color:#050C18;border:none;font-family:var(--font-body);font-size:.72rem;font-weight:700;padding:6px 14px;border-radius:4px;cursor:pointer}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.card{background:var(--surface-raised);border:1px solid var(--border-default);border-radius:var(--r-sm);padding:14px;display:flex;flex-direction:column;gap:10px}.card:hover{border-color:var(--accent-glow)}
+.cname{font-size:.82rem;font-weight:700;word-break:break-word}
+.sbadge{font-size:.6rem;font-weight:700;padding:2px 6px;border-radius:3px;border:1px solid;white-space:nowrap}
+.s0{color:var(--err);border-color:rgba(244,112,128,.4);background:rgba(244,112,128,.09)}
+.sl{color:var(--warn);border-color:rgba(240,194,78,.4);background:rgba(240,194,78,.09)}
+.sk{color:var(--ok);border-color:rgba(92,217,160,.4);background:rgba(92,217,160,.08)}
+.fields{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.fl{color:var(--text-muted);font-size:.6rem;letter-spacing:1px;font-weight:600}
+.fi{background:var(--input-bg);border:1px solid var(--input-border);color:var(--text-primary);font-family:var(--font-mono);font-size:.78rem;padding:4px 8px;border-radius:3px;outline:none;transition:border-color .12s}
+.fi:focus{border-color:var(--input-focus-border)}.fi.sku{width:110px}.fi.stk{width:55px;text-align:center}
+.sc{display:flex;gap:2px}
+.sb{background:var(--surface-high);border:none;color:var(--text-primary);font-size:13px;font-weight:700;width:24px;height:24px;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.sbp:hover{background:var(--ok);color:#050C18}.sbm:hover{background:var(--err);color:#fff}
+.cmeta{font-family:var(--font-mono);font-size:.6rem;color:var(--text-muted);border-top:1px solid var(--border-subtle);padding-top:8px;display:flex;justify-content:space-between;align-items:center}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}.dot.p{background:var(--warn)}.dot.s{background:var(--ok)}
+#empty{display:none;text-align:center;padding:48px 0;color:var(--text-muted)}
+
+/* ═══ 13. KERNEL INFO ═══ */
+.ki-grid{display:grid;gap:6px;margin-top:16px;padding:14px;background:var(--surface-raised);border:1px solid var(--border-default);border-radius:var(--r-sm)}
+.ki-row{display:flex;justify-content:space-between;font-size:.7rem}
+.ki-label{color:var(--text-muted);font-weight:600}.ki-val{font-family:var(--font-mono);color:var(--text-secondary)}
+
+/* ═══ 14. TOAST ═══ */
+#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--surface-raised);border:1px solid var(--badge-ok-border);color:var(--badge-ok-color);font-size:.72rem;padding:6px 16px;border-radius:4px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:999;font-family:var(--font-mono)}
+#toast.show{opacity:1}#toast.e{border-color:var(--badge-err-border);color:var(--badge-err-color)}
+</style>
+</head>
+<body>
+<script>
+(function(){var t=localStorage.getItem('kobalt:theme')||'dark';document.documentElement.setAttribute('data-theme',t)})();
+</script>
+
+<!-- ═══ FONDO DECORATIVO ═══ -->
+<div class="bg-wrap">
+  <div class="spark" style="top:12%;left:8%;animation-delay:0s"></div>
+  <div class="spark" style="top:24%;left:78%;animation-delay:1.2s"></div>
+  <div class="spark" style="top:68%;left:22%;animation-delay:2.4s"></div>
+  <div class="spark" style="top:82%;left:88%;animation-delay:.8s"></div>
+  <div class="spark" style="top:45%;left:52%;animation-delay:1.8s"></div>
+</div>
+
+<!-- ═══ NAVBAR ═══ -->
+<nav class="nav">
+  <span class="nav-logo">KOBALT</span>
+  <div class="nav-right">
+    <span id="sync-badge" class="badge badge-warn" style="display:none">—</span>
+    <button id="btn-sync" class="btn" style="display:none">↻ Sync</button>
+    <button id="btn-logout" class="btn" style="display:none">Salir</button>
+    <button id="btnTheme" class="btn-theme">
+      <span id="thIconD">☾</span><span id="thIconL" style="display:none">☀</span>
+      <span id="thLabel">Oscuro</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ═══ PANTALLA LOGIN ═══ -->
+<div id="screen-login" class="page">
+  <div class="login-wrap">
+    <div class="login-card">
+      <!-- Tabs -->
+      <div class="tab-switcher">
+        <button class="tab-btn active" data-tab="login">Ingresar</button>
+        <button class="tab-btn" data-tab="register">Registrar</button>
+      </div>
+
+      <div class="tab-body">
+        <!-- Panel Login -->
+        <div id="panelLogin" class="tab-panel active">
+          <div class="form-stack">
+            <div class="field">
+              <label>Código país + Teléfono</label>
+              <div class="phone-row">
+                <input class="k-input" type="text" id="loginDial" value="57" placeholder="57">
+                <input class="k-input" type="tel" id="loginPhone" placeholder="3176371365" autocomplete="tel">
+              </div>
+            </div>
+            <div class="field">
+              <label>Contraseña</label>
+              <input class="k-input" type="password" id="loginPass" autocomplete="current-password">
+            </div>
+            <button id="btnLogin" class="btn-primary">Ingresar</button>
+            <p class="tab-hint">¿No tienes cuenta? <button class="link-btn" data-switch-tab="register">Regístrate</button></p>
+          </div>
+        </div>
+
+        <!-- Panel Register -->
+        <div id="panelRegister" class="tab-panel">
+          <div class="form-stack">
+            <div class="field">
+              <label>Nombre completo</label>
+              <input class="k-input" type="text" id="regName" placeholder="Tu nombre" autocomplete="name">
+            </div>
+            <div class="field">
+              <label>Código país + Teléfono</label>
+              <div class="phone-row">
+                <input class="k-input" type="text" id="regDial" value="57" placeholder="57">
+                <input class="k-input" type="tel" id="regPhone" placeholder="3176371365" autocomplete="tel">
+              </div>
+              <span class="hint">Código de marcado del país + dígitos del teléfono.</span>
+            </div>
+            <div class="field">
+              <label>Contraseña</label>
+              <input class="k-input" type="password" id="regPass">
+            </div>
+            <button id="btnRegister" class="btn-primary">Registrar</button>
+            <p class="tab-hint">¿Ya tienes cuenta? <button class="link-btn" data-switch-tab="login">Ingresa</button></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div id="statusOut"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PANTALLA APP ═══ -->
+<div id="screen-app">
+  <div class="app-bar">
+    <span id="ki-session" style="font-family:var(--font-mono);font-size:.7rem;color:var(--text-muted)">—</span>
+    <span style="flex:1"></span>
+    <button id="btn-toggle-add" class="btn">+ Producto</button>
+    <button id="btn-export" class="btn">⬇ JSON</button>
+  </div>
+
+  <div id="add-bar">
+    <input type="text" id="add-name" placeholder="Nombre del producto" style="flex:1;min-width:150px">
+    <input type="text" id="add-sku" placeholder="SKU" style="width:100px">
+    <input type="number" id="add-stk" value="0" style="width:60px" min="0">
+    <button id="btn-add-product" class="btn-add">AGREGAR</button>
+    <button id="btn-close-add" class="btn" style="padding:6px 8px">✕</button>
+  </div>
+
+  <div id="grid"></div>
+  <div id="empty">Sin productos aún.<br>Usa + Producto para comenzar.</div>
+
+  <div class="ki-grid">
+    <div class="ki-row"><span class="ki-label">Node</span><span class="ki-val" id="ki-node">—</span></div>
+    <div class="ki-row"><span class="ki-label">DB</span><span class="ki-val" id="ki-db">—</span></div>
+    <div class="ki-row"><span class="ki-label">Entidades</span><span class="ki-val" id="ki-count">—</span></div>
+    <div class="ki-row"><span class="ki-label">Status</span><span class="ki-val" id="ki-status">—</span></div>
+    <div class="ki-row"><span class="ki-label">Kernel</span><span class="ki-val" id="ki-version">—</span></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script src="./core/kernel_flat.js"></script>
+<script src="./red/connectors.js"></script>
+<script src="./apps/commerce.js"></script>
+</body>
+</html>

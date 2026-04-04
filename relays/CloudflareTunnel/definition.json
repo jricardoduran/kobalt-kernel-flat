@@ -1,0 +1,11 @@
+{
+  "id":    "cloudflare-tunnel",
+  "label": "Cloudflare Tunnel",
+  "accent":"#F38020",
+  "note":  "cloudflared crea un túnel HTTPS público sin IP pública ni abrir puertos. Ideal para nodos detrás de NAT.",
+  "fields": [
+    { "id": "label",      "label": "Etiqueta",    "type": "text", "required": false },
+    { "id": "url",        "label": "URL túnel",   "type": "text", "required": true,  "placeholder": "https://abc123.trycloudflare.com" },
+    { "id": "tunnel_id",  "label": "Tunnel ID",   "type": "text", "required": false, "placeholder": "UUID del túnel (opcional)" }
+  ]
+}

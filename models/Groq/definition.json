@@ -1,0 +1,12 @@
+{
+  "id":    "groq",
+  "label": "Groq",
+  "accent":"#EAB308",
+  "note":  "Groq (groq.com) — inferencia rápida sobre LLaMA, Mixtral, Gemma. API key custodiada en servidor.",
+  "fields": [
+    { "id": "label",    "label": "Etiqueta",  "type": "text",     "required": false, "placeholder": "Groq LLaMA" },
+    { "id": "api_key",  "label": "API Key",   "type": "password", "required": true,  "placeholder": "gsk_...", "hint": "console.groq.com → API Keys" },
+    { "id": "model",    "label": "Modelo",    "type": "text",     "required": false, "default": "llama-3.3-70b-versatile" },
+    { "id": "priority", "label": "Prioridad", "type": "number",   "required": false, "default": 10 }
+  ]
+}

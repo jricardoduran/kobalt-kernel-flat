@@ -1,0 +1,385 @@
+(function() {
+  'use strict';
+
+  const K = () => globalThis.__KOBALT__?.api;
+  const C = () => globalThis.KobaltConnectors;
+
+  const AUTH_URL    = './auth.php';
+  const STORAGE_URL = './storages/api.php';
+
+  let session    = null;
+  let syncHandle = null;
+  let uiCache    = { grid: '', stats: '', badge: '' };
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  /* ═══════════════════════════════════════════════════
+     HELPERS UI — sync ≠ repaint
+     ═══════════════════════════════════════════════════ */
+
+  function setIfChanged(el, val) { const v = String(val); if (el && el.textContent !== v) el.textContent = v; }
+  function setHTMLIfChanged(el, html) { if (el && el.innerHTML !== html) el.innerHTML = html; }
+
+  let toastTimer = null;
+  function toast(msg, isErr) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.className = 'show' + (isErr ? ' e' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.className = '', 3500);
+  }
+
+  function setBadge(cls, text) {
+    const key = cls + '::' + text;
+    if (uiCache.badge === key) return;
+    uiCache.badge = key;
+    const b = $('sync-badge');
+    b.className = 'badge ' + cls;
+    setIfChanged(b, text);
+  }
+
+  function setStatus(text, type) {
+    const el = $('statusOut');
+    if (!el) return;
+    el.textContent = text || '';
+    el.className = text ? ('visible st-' + (type || 'warn')) : '';
+  }
+
+  /* ═══════════════════════════════════════════════════
+     TABS — Ingresar / Registrar
+     ═══════════════════════════════════════════════════ */
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.tab === name);
+    });
+    $('panelLogin').classList.toggle('active', name === 'login');
+    $('panelRegister').classList.toggle('active', name === 'register');
+    setStatus('');
+  }
+
+  /* ═══════════════════════════════════════════════════
+     TEMA
+     ═══════════════════════════════════════════════════ */
+
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('kobalt:theme', t);
+    const d = $('thIconD'), l = $('thIconL'), lb = $('thLabel');
+    if (d) d.style.display = t === 'dark' ? '' : 'none';
+    if (l) l.style.display = t === 'light' ? '' : 'none';
+    if (lb) lb.textContent = t === 'dark' ? 'Oscuro' : 'Claro';
+  }
+
+  /* ═══════════════════════════════════════════════════
+     AUTH — registro + login
+     ═══════════════════════════════════════════════════ */
+
+  async function doRegister(storagesConfig) {
+    const name = $('regName').value.trim();
+    const dial = $('regDial').value.trim();
+    const phone = $('regPhone').value.trim().replace(/\D+/g, '');
+    const pass = $('regPass').value;
+
+    if (!name)  { setStatus('Escribe el nombre completo.', 'err'); return; }
+    if (!phone) { setStatus('Escribe el teléfono.', 'err'); return; }
+    if (!pass)  { setStatus('Escribe la contraseña.', 'err'); return; }
+
+    setStatus('Registrando identidad…', 'warn');
+
+    try {
+      const resp = await fetch(`${AUTH_URL}?action=register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone, password: pass, countryDial: dial, countryCode: 'CO' }),
+      });
+      const data = await resp.json();
+
+      if (!data.ok) {
+        setStatus(data.error || 'Error al registrar', 'err');
+        return;
+      }
+
+      setStatus('Registrado. Abriendo sesión…', 'ok');
+      await openKernelSession(data, storagesConfig);
+
+    } catch (err) {
+      setStatus('Error: ' + err.message, 'err');
+    }
+  }
+
+  async function doLogin(storagesConfig) {
+    const dial  = $('loginDial').value.trim();
+    const phone = $('loginPhone').value.trim().replace(/\D+/g, '');
+    const pass  = $('loginPass').value;
+
+    if (!phone) { setStatus('Escribe el teléfono.', 'err'); return; }
+    if (!pass)  { setStatus('Escribe la contraseña.', 'err'); return; }
+
+    setStatus('Verificando identidad…', 'warn');
+
+    try {
+      const resp = await fetch(`${AUTH_URL}?action=login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password: pass, countryDial: dial }),
+      });
+      const data = await resp.json();
+
+      if (!data.ok) {
+        setStatus(data.error || 'Error al ingresar', 'err');
+        return;
+      }
+
+      setStatus('Identidad verificada. Abriendo sesión…', 'ok');
+      await openKernelSession(data, storagesConfig);
+
+    } catch (err) {
+      setStatus('Error: ' + err.message, 'err');
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════
+     SESIÓN — puente S → B → L
+     ═══════════════════════════════════════════════════ */
+
+  async function openKernelSession(authData, storagesConfig) {
+    session = await K().openSession(authData.H_u, authData.services || [], null);
+
+    const cs = await C().buildServices(session, storagesConfig);
+    K().bindSessionStorages(session, cs);
+
+    $('screen-login').style.display = 'none';
+    $('screen-app').style.display = 'block';
+    $('sync-badge').style.display = '';
+    $('btn-sync').style.display = '';
+    $('btn-logout').style.display = '';
+
+    setIfChanged($('ki-session'), session.db_id.slice(0, 12) + '…');
+    await refreshEntities();
+    await renderKernelInfo();
+    await doSync();
+
+    const interval = storagesConfig?.sync?.interval_ms || 20000;
+    syncHandle = setInterval(() => doSync(true), interval);
+  }
+
+  /* ═══════════════════════════════════════════════════
+     SYNC — con repaint diferencial
+     ═══════════════════════════════════════════════════ */
+
+  async function doSync(silent) {
+    if (!session) return;
+    if (!session.connectedStorages?.hasConnectors?.()) {
+      setBadge('badge-warn', 'LOCAL');
+      return;
+    }
+    if (!silent) setBadge('badge-warn', '⟳');
+
+    try {
+      const r = await K().syncSession(session);
+      const cls = (r.status === 'in_sync' || r.status === 'synced' || r.status === 'first_push')
+        ? 'badge-ok' : r.status === 'local_only' ? 'badge-warn' : 'badge-err';
+      setBadge(cls, r.status === 'in_sync' ? 'IN SYNC' : r.status);
+      if (r.pulls > 0) await refreshEntities();
+    } catch {
+      setBadge('badge-err', 'ERROR');
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════
+     ENTIDADES — grid con repaint diferencial
+     ═══════════════════════════════════════════════════ */
+
+  async function refreshEntities() {
+    if (!session) return;
+    const products = await K().loadEntitiesByType(session.db, 'product');
+
+    const gridSig = JSON.stringify(products.map(p => p.entityId + p.stateHash));
+    if (uiCache.grid !== gridSig) {
+      uiCache.grid = gridSig;
+      renderGrid(products);
+    }
+
+    await renderKernelInfo();
+  }
+
+  function renderGrid(products) {
+    const grid = $('grid');
+    const empty = $('empty');
+
+    if (!products.length) {
+      grid.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    grid.style.display = 'grid';
+    empty.style.display = 'none';
+
+    grid.innerHTML = products.map(p => {
+      let d; try { d = JSON.parse(p.payload); } catch { d = {}; }
+      const stk = Number(d.stock ?? 0);
+      const cls = stk === 0 ? 's0' : (stk <= 3 ? 'sl' : 'sk');
+      const lbl = stk === 0 ? 'AGOTADO' : (stk <= 3 ? 'BAJO' : 'OK');
+      const ts  = p.ts ? new Date(p.ts).toLocaleString('es') : '—';
+      return `<div class="card" data-eid="${esc(p.entityId)}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div class="cname">${esc(d.nombre || d.name || '—')}</div>
+          <span class="sbadge ${cls}">${lbl} ${stk}</span>
+        </div>
+        <div class="fields">
+          <span class="fl">SKU</span>
+          <input class="fi sku" data-role="sku" data-eid="${esc(p.entityId)}" value="${esc(d.sku || '')}" placeholder="—">
+          <span class="fl">STOCK</span>
+          <div class="sc">
+            <button class="sb sbm" data-role="delta" data-eid="${esc(p.entityId)}" data-delta="-1">−</button>
+            <input class="fi stk" type="number" data-role="stock" data-eid="${esc(p.entityId)}" value="${stk}">
+            <button class="sb sbp" data-role="delta" data-eid="${esc(p.entityId)}" data-delta="1">+</button>
+          </div>
+        </div>
+        <div class="cmeta">
+          <span style="display:flex;align-items:center;gap:4px">
+            <span class="dot s"></span> ${esc(p.entityId.slice(0,8))}…
+          </span>
+          <span>${esc(ts)}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    bindGridEvents();
+  }
+
+  function bindGridEvents() {
+    $('grid').querySelectorAll('[data-role="delta"]').forEach(btn =>
+      btn.addEventListener('click', () => adjustStock(btn.dataset.eid, Number(btn.dataset.delta)))
+    );
+    $('grid').querySelectorAll('[data-role="sku"]').forEach(inp =>
+      inp.addEventListener('change', () => updateField(inp.dataset.eid, 'sku', inp.value))
+    );
+    $('grid').querySelectorAll('[data-role="stock"]').forEach(inp =>
+      inp.addEventListener('change', () => updateField(inp.dataset.eid, 'stock', Number(inp.value || 0)))
+    );
+  }
+
+  async function addProduct() {
+    if (!session) return;
+    const nombre = $('add-name').value.trim();
+    if (!nombre) { toast('Nombre requerido', true); return; }
+    await K().createEntity(session, {
+      _type: 'product', nombre,
+      sku: $('add-sku').value.trim(),
+      stock: Number($('add-stk').value || 0),
+    }, 'product');
+    $('add-name').value = ''; $('add-sku').value = ''; $('add-stk').value = '0';
+    $('add-bar').classList.remove('open');
+    await refreshEntities();
+    toast('Producto creado');
+    doSync();
+  }
+
+  async function updateField(eid, field, value) {
+    const e = await K().loadEntityLocal(session.db, eid);
+    if (!e) return;
+    let p; try { p = JSON.parse(e.payload); } catch { p = {}; }
+    p[field] = field === 'stock' ? Math.max(0, Number(value || 0)) : value;
+    await K().saveEntityVersion(session, eid, p);
+    await refreshEntities();
+    doSync();
+  }
+
+  async function adjustStock(eid, delta) {
+    const e = await K().loadEntityLocal(session.db, eid);
+    if (!e) return;
+    let p; try { p = JSON.parse(e.payload); } catch { p = {}; }
+    p.stock = Math.max(0, Number(p.stock || 0) + delta);
+    await K().saveEntityVersion(session, eid, p);
+    await refreshEntities();
+    doSync();
+  }
+
+  async function exportJSON() {
+    if (!session) return;
+    const ents = await K().loadAllEntitiesLocal(session.db);
+    const data = ents.map(e => { try { return { ...JSON.parse(e.payload), _eid: e.entityId }; } catch { return null; } }).filter(Boolean);
+    const a = Object.assign(document.createElement('a'), {
+      href: URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })),
+      download: `kobalt_export_${Date.now()}.json`
+    });
+    a.click();
+  }
+
+  /* ═══════════════════════════════════════════════════
+     KERNEL INFO
+     ═══════════════════════════════════════════════════ */
+
+  async function renderKernelInfo() {
+    if (!session) return;
+    setIfChanged($('ki-node'), session.nodeId);
+    setIfChanged($('ki-db'), session.db_id);
+    setIfChanged($('ki-version'), K().KERNEL_VERSION);
+    const counts = await K().countByType(session.db);
+    setIfChanged($('ki-count'), String(Object.values(counts).reduce((s, n) => s + n, 0)));
+    setIfChanged($('ki-status'), session.status || 'activa');
+  }
+
+  /* ═══════════════════════════════════════════════════
+     LOGOUT
+     ═══════════════════════════════════════════════════ */
+
+  async function doLogout() {
+    if (syncHandle) { clearInterval(syncHandle); syncHandle = null; }
+    if (session) { await K().closeSession(session); session = null; }
+    uiCache = { grid: '', stats: '', badge: '' };
+    $('screen-app').style.display = 'none';
+    $('screen-login').style.display = '';
+    $('sync-badge').style.display = 'none';
+    $('btn-sync').style.display = 'none';
+    $('btn-logout').style.display = 'none';
+    $('grid').innerHTML = '';
+    setStatus('');
+  }
+
+  /* ═══════════════════════════════════════════════════
+     INIT
+     ═══════════════════════════════════════════════════ */
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const storagesConfig = await C().load(STORAGE_URL);
+
+    // Tabs
+    document.querySelectorAll('.tab-btn').forEach(b =>
+      b.addEventListener('click', () => switchTab(b.dataset.tab))
+    );
+    document.querySelectorAll('[data-switch-tab]').forEach(b =>
+      b.addEventListener('click', () => switchTab(b.dataset.switchTab))
+    );
+
+    // Theme
+    applyTheme(localStorage.getItem('kobalt:theme') || 'dark');
+    $('btnTheme').addEventListener('click', () => {
+      applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    });
+
+    // Auth buttons
+    $('btnLogin').addEventListener('click', () => doLogin(storagesConfig));
+    $('btnRegister').addEventListener('click', () => doRegister(storagesConfig));
+
+    // Enter key
+    ['loginDial','loginPhone','loginPass'].forEach(id =>
+      $(id).addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(storagesConfig); })
+    );
+    ['regName','regDial','regPhone','regPass'].forEach(id =>
+      $(id).addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(storagesConfig); })
+    );
+
+    // App controls
+    $('btn-sync').addEventListener('click', () => doSync(false));
+    $('btn-logout').addEventListener('click', doLogout);
+    $('btn-toggle-add').addEventListener('click', () => $('add-bar').classList.toggle('open'));
+    $('btn-close-add').addEventListener('click', () => $('add-bar').classList.remove('open'));
+    $('btn-add-product').addEventListener('click', addProduct);
+    $('btn-export').addEventListener('click', exportJSON);
+  });
+
+})();

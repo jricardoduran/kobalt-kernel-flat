@@ -1,0 +1,30 @@
+{
+  "id": "phphost",
+  "label": "PHP Host",
+  "accent": "#4D6AF7",
+  "connector": "./storages/store.php",
+  "fields": [
+    {
+      "id": "label",
+      "label": "Etiqueta",
+      "type": "text",
+      "required": false,
+      "placeholder": "Servidor principal"
+    },
+    {
+      "id": "url",
+      "label": "URL",
+      "type": "text",
+      "required": true,
+      "placeholder": "https://miservidor.com/store.php",
+      "hint": "URL pública del store.php en el hosting"
+    },
+    {
+      "id": "priority",
+      "label": "Prioridad",
+      "type": "number",
+      "required": false,
+      "default": 1
+    }
+  ]
+}

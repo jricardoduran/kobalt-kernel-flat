@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kobalt · HMAC Generator</title>
+  <style>
+    :root {
+      --bg:   #030810;
+      --sf:   #070e1a;
+      --bd:   rgba(75,106,247,0.18);
+      --tx:   #e0e6f4;
+      --dim:  #6b7a99;
+      --cyan: #29C5F6;
+      --blue: #4D6AF7;
+      --green:#22C55E;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--tx);
+      font-family: system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: var(--sf);
+      border: 1px solid var(--bd);
+      border-radius: 12px;
+      padding: 32px;
+      width: min(460px, 100%);
+    }
+
+    .title {
+      font: 700 11px var(--mono);
+      letter-spacing: .25em;
+      color: var(--blue);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font: 400 12px var(--mono);
+      color: var(--dim);
+      margin-bottom: 28px;
+      line-height: 1.6;
+    }
+
+    label {
+      display: block;
+      font: 600 10px var(--mono);
+      letter-spacing: .15em;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg);
+      border: 1px solid var(--bd);
+      border-radius: 6px;
+      color: var(--tx);
+      font: 13px var(--mono);
+      margin-bottom: 16px;
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    input:focus { border-color: var(--blue); }
+    input::placeholder { color: var(--dim); }
+
+    button {
+      width: 100%;
+      padding: 11px;
+      background: linear-gradient(135deg, var(--blue), #6B3FCC);
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font: 600 11px var(--mono);
+      letter-spacing: .1em;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: opacity .15s;
+    }
+
+    button:hover { opacity: .9; }
+    button:active { opacity: .75; }
+
+    .result { display: none; }
+
+    .result-label {
+      font: 600 10px var(--mono);
+      letter-spacing: .15em;
+      color: var(--dim);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .result-box {
+      background: var(--bg);
+      border: 1px solid var(--bd);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+      font: 12px var(--mono);
+      color: var(--cyan);
+      word-break: break-all;
+      line-height: 1.7;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+
+    .result-box:hover { border-color: var(--blue); }
+
+    .copy-hint {
+      font: 10px var(--mono);
+      color: var(--dim);
+      margin-bottom: 20px;
+    }
+
+    .php-block {
+      background: var(--bg);
+      border: 1px solid rgba(34,197,94,.2);
+      border-radius: 6px;
+      padding: 14px;
+      font: 11px var(--mono);
+      color: var(--green);
+      line-height: 1.9;
+      white-space: pre;
+      overflow-x: auto;
+      margin-bottom: 8px;
+    }
+
+    .php-hint {
+      font: 10px var(--mono);
+      color: var(--dim);
+      line-height: 1.5;
+    }
+
+    .sep {
+      height: 1px;
+      background: var(--bd);
+      margin: 20px 0;
+    }
+
+    .copied {
+      font: 10px var(--mono);
+      color: var(--green);
+      margin-top: 4px;
+      height: 14px;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <div class="title">Kobalt · HMAC Generator</div>
+  <div class="subtitle">
+    Genera el HMAC de tu contraseña admin.<br>
+    Corre 100% local — ningún dato sale del navegador.
+  </div>
+
+  <label for="inp-pass">Contraseña admin</label>
+  <input type="password" id="inp-pass" placeholder="Tu contraseña">
+
+  <label for="inp-key">Clave secreta (KEY)</label>
+  <input type="text" id="inp-key" placeholder="PACARINAS2026">
+
+  <button onclick="generate()">▶ GENERAR HMAC</button>
+
+  <div class="result" id="result">
+
+    <div class="result-label">HMAC resultante</div>
+    <div class="result-box" id="hmac-out" onclick="copyHmac()" title="Clic para copiar"></div>
+    <div class="copy-hint">↑ Clic para copiar</div>
+    <div class="copied" id="copied-msg"></div>
+
+    <div class="sep"></div>
+
+    <div class="result-label">Pegar en storages/common.php</div>
+    <div class="php-block" id="php-out"></div>
+    <div class="php-hint">
+      Solo cambia estas dos líneas en common.php.<br>
+      El resto del sistema funciona automáticamente.
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  async function generate() {
+    const pass = document.getElementById('inp-pass').value;
+    const key  = document.getElementById('inp-key').value;
+
+    if (!pass || !key) {
+      alert('Ingresa contraseña y clave.');
+      return;
+    }
+
+    // HMAC-SHA256 puro en WebCrypto — sin librerías externas
+    const enc      = new TextEncoder();
+    const keyBytes = enc.encode(key);
+    const msgBytes = enc.encode(pass);
+
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw', keyBytes,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false, ['sign']
+    );
+
+    const sig  = await crypto.subtle.sign('HMAC', cryptoKey, msgBytes);
+    const hmac = Array.from(new Uint8Array(sig))
+                      .map(b => b.toString(16).padStart(2, '0'))
+                      .join('');
+
+    document.getElementById('hmac-out').textContent = hmac;
+
+    document.getElementById('php-out').textContent =
+      `define('KOBALT_ADMIN_HASH', '${hmac}');\n` +
+      `define('KOBALT_ADMIN_KEY',  '${key}');`;
+
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('copied-msg').textContent = '';
+  }
+
+  async function copyHmac() {
+    const hmac = document.getElementById('hmac-out').textContent;
+    await navigator.clipboard.writeText(hmac);
+    document.getElementById('copied-msg').textContent = '✓ Copiado';
+    setTimeout(() => {
+      document.getElementById('copied-msg').textContent = '';
+    }, 2000);
+  }
+
+  // Enter para generar
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') generate();
+  });
+</script>
+
+</body>
+</html>

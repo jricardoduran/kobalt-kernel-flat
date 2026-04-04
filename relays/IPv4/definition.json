@@ -1,0 +1,11 @@
+{
+  "id":    "ipv4",
+  "label": "IPv4 Relay",
+  "accent":"#7B4FE0",
+  "note":  "Servidor con IP pública fija. Enruta tráfico TCP/WS entre nodos sin IP alcanzable.",
+  "fields": [
+    { "id": "label",    "label": "Etiqueta",  "type": "text",   "required": false },
+    { "id": "url",      "label": "URL WS",    "type": "text",   "required": true,  "placeholder": "wss://relay.kobalt.app:8080" },
+    { "id": "priority", "label": "Prioridad", "type": "number", "required": false, "default": 10 }
+  ]
+}

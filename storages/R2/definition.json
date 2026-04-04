@@ -1,0 +1,59 @@
+{
+  "id": "r2",
+  "label": "Cloudflare R2",
+  "accent": "#f6821f",
+  "connector": "./storages/proxy.php",
+  "fields": [
+    {
+      "id": "label",
+      "label": "Etiqueta",
+      "type": "text",
+      "required": false,
+      "placeholder": "Mi bucket R2"
+    },
+    {
+      "id": "account_id",
+      "label": "Account ID",
+      "type": "text",
+      "required": true,
+      "placeholder": "abc123..."
+    },
+    {
+      "id": "access_key",
+      "label": "Access Key ID",
+      "type": "text",
+      "required": true,
+      "placeholder": "..."
+    },
+    {
+      "id": "secret_key",
+      "label": "Secret Access Key",
+      "type": "password",
+      "required": true,
+      "placeholder": "..."
+    },
+    {
+      "id": "bucket",
+      "label": "Bucket",
+      "type": "text",
+      "required": true,
+      "placeholder": "mi-bucket"
+    },
+    {
+      "id": "region",
+      "label": "Región",
+      "type": "text",
+      "required": false,
+      "default": "auto",
+      "half": true
+    },
+    {
+      "id": "priority",
+      "label": "Prioridad",
+      "type": "number",
+      "required": false,
+      "default": 10,
+      "half": true
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id":       "wasmer-php",
+  "label":    "Wasmer PHP",
+  "accent":   "#29C5F6",
+  "runtime":  "php",
+  "note":     "El mismo proxy.php desplegado en Wasmer. Stateless por diseño. Activa automáticamente cuando el servidor principal cae.",
+  "connector": "./proxies/WasmerPHP/proxy.php",
+  "fields": [
+    { "id": "label",       "label": "Etiqueta",    "type": "text",   "required": false, "placeholder": "Wasmer Proxy 1" },
+    { "id": "url",         "label": "URL Wasmer",  "type": "text",   "required": true,  "placeholder": "https://wasmer.io/.../proxy.php" },
+    { "id": "fallback_for","label": "Fallback de", "type": "text",   "required": false, "placeholder": "gitlab-main,r2-backup", "hint": "IDs de servicios para los que actúa como fallback" },
+    { "id": "priority",    "label": "Prioridad",   "type": "number", "required": false, "default": 50 }
+  ]
+}

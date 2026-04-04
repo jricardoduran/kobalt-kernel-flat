@@ -1,0 +1,11 @@
+{
+  "id":    "webrtc",
+  "label": "WebRTC",
+  "accent":"#A855F7",
+  "note":  "STUN/TURN server para negociación P2P entre nodos de browser.",
+  "fields": [
+    { "id": "label",    "label": "Etiqueta",  "type": "text", "required": false },
+    { "id": "stun_url", "label": "STUN URL",  "type": "text", "required": true,  "placeholder": "stun:stun.kobalt.app:3478" },
+    { "id": "turn_url", "label": "TURN URL",  "type": "text", "required": false, "placeholder": "turn:turn.kobalt.app:3478" }
+  ]
+}

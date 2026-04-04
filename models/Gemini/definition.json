@@ -1,0 +1,12 @@
+{
+  "id":    "gemini",
+  "label": "Gemini",
+  "accent":"#4285F4",
+  "note":  "Google Gemini API. API key custodiada en servidor. Nodo nunca la ve.",
+  "fields": [
+    { "id": "label",    "label": "Etiqueta",  "type": "text",     "required": false, "placeholder": "Gemini Flash" },
+    { "id": "api_key",  "label": "API Key",   "type": "password", "required": true,  "placeholder": "AIza...", "hint": "aistudio.google.com → API Key" },
+    { "id": "model",    "label": "Modelo",    "type": "text",     "required": false, "default": "gemini-2.0-flash" },
+    { "id": "priority", "label": "Prioridad", "type": "number",   "required": false, "default": 10 }
+  ]
+}

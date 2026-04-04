@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kobalt Red FLAT — Arquitectura</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg:     #030810;
+    --sf:     #070e1a;
+    --bd:     rgba(75,106,247,0.12);
+    --bd2:    rgba(75,106,247,0.25);
+    --tx:     #e0e6f4;
+    --dim:    #4a5568;
+    --dim2:   #6b7a99;
+    --cyan:   #29C5F6;
+    --blue:   #4D6AF7;
+    --purple: #7B4FE0;
+    --mag:    #A855F7;
+    --pink:   #E879A8;
+    --orange: #F6821F;
+    --green:  #22C55E;
+    --gold:   #EAB308;
+    --mono: 'JetBrains Mono', monospace;
+    --body: 'DM Sans', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--tx);
+    font-family: var(--body);
+    min-height: 100vh;
+    padding: 48px 24px 96px;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse at 18% 8%,  rgba(75,106,247,.07) 0%, transparent 52%),
+      radial-gradient(ellipse at 82% 92%, rgba(123,79,224,.06) 0%, transparent 52%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .wrap { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+
+  /* HEADER */
+  .header { text-align: center; margin-bottom: 60px; }
+
+  .logo {
+    font: 700 10px var(--mono);
+    letter-spacing: .3em;
+    color: var(--blue);
+    text-transform: uppercase;
+    opacity: .65;
+    margin-bottom: 14px;
+  }
+
+  .title {
+    font: 700 34px var(--body);
+    background: linear-gradient(135deg, var(--cyan), var(--blue), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -.4px;
+    margin-bottom: 10px;
+  }
+
+  .subtitle { font: 400 13px var(--mono); color: var(--dim2); letter-spacing: .05em; }
+
+  /* AXIOMA */
+  .axiom {
+    border: 1px solid var(--bd2);
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(75,106,247,.05), rgba(123,79,224,.03));
+    padding: 24px 36px;
+    margin-bottom: 52px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .axiom::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(75,106,247,.09) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  .axiom-label {
+    font: 600 9px var(--mono);
+    letter-spacing: .25em;
+    color: var(--blue);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .axiom-text {
+    font: 500 15px var(--mono);
+    color: var(--tx);
+    line-height: 2;
+    position: relative;
+  }
+
+  .hl  { color: var(--cyan); }
+  .hl2 { color: var(--purple); }
+  .sep { color: var(--dim); margin: 0 8px; }
+
+  /* PATRÓN */
+  .pattern {
+    display: grid;
+    grid-template-columns: 1fr 28px 1fr 28px 1fr;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--bd);
+    margin-bottom: 14px;
+  }
+
+  .p-step { background: var(--sf); padding: 24px 24px 22px; }
+
+  .p-arrow {
+    background: var(--sf);
+    border-left: 1px solid var(--bd);
+    border-right: 1px solid var(--bd);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--bd2); font-size: 16px;
+  }
+
+  .ps-num {
+    font: 700 28px var(--mono);
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px; line-height: 1;
+  }
+
+  .ps-label {
+    font: 700 10px var(--mono);
+    letter-spacing: .2em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .ps-desc { font: 400 12.5px var(--body); color: var(--dim2); line-height: 1.65; }
+
+  /* CALLOUT */
+  .callout {
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 14px;
+    font: 500 12px var(--mono);
+    line-height: 1.75;
+  }
+
+  .callout-cyan   { background: rgba(41,197,246,.05); border: 1px solid rgba(41,197,246,.18); color: var(--cyan); }
+  .callout-blue   { background: rgba(75,106,247,.05); border: 1px solid rgba(75,106,247,.2);  color: #8da4ff; }
+
+  .callout strong { color: #fff; }
+  .callout code   { font: 500 10.5px var(--mono); color: var(--cyan); }
+
+  /* ÁRBOL */
+  .tree {
+    background: var(--sf);
+    border: 1px solid var(--bd);
+    border-radius: 12px;
+    padding: 28px 30px;
+    font: 400 12px var(--mono);
+    line-height: 2.05;
+    color: var(--dim2);
+    overflow-x: auto;
+  }
+
+  .t-root { color: var(--cyan); font-weight: 700; font-size: 14px; }
+  .t-cat  { color: var(--blue); font-weight: 600; }
+  .t-type { color: var(--purple); font-weight: 500; }
+  .t-new  { color: var(--green); }
+  .t-plan { color: var(--gold); opacity: .85; }
+  .t-dim  { color: var(--dim2); }
+  .t-com  { color: var(--dim); font-style: italic; }
+
+  /* SECCIÓN */
+  .section { margin-bottom: 44px; }
+
+  .section-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 18px; flex-wrap: wrap;
+  }
+
+  .s-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 8px currentColor; }
+  .s-title { font: 700 11px var(--mono); letter-spacing: .2em; text-transform: uppercase; }
+  .s-badge {
+    font: 600 9px var(--mono); letter-spacing: .13em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 99px; border: 1px solid;
+  }
+  .s-note { font: 400 11px var(--mono); color: var(--dim2); margin-left: auto; }
+
+  /* GRID */
+  .g { display: grid; gap: 12px; }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+
+  /* CARD */
+  .card {
+    background: var(--sf);
+    border: 1px solid var(--bd);
+    border-radius: 11px;
+    padding: 20px 20px 18px;
+    position: relative; overflow: hidden;
+    transition: border-color .2s, transform .15s;
+  }
+
+  .card:hover { border-color: var(--bd2); transform: translateY(-2px); }
+
+  .card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--ca), var(--cb));
+  }
+
+  .c-icon { font-size: 24px; margin-bottom: 10px; display: block; }
+  .c-name { font: 700 13px var(--mono); color: var(--tx); margin-bottom: 3px; }
+  .c-type { font: 500 9px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim2); margin-bottom: 10px; }
+  .c-desc { font: 400 12px var(--body); color: var(--dim2); line-height: 1.6; margin-bottom: 13px; }
+  .c-desc code { font: 500 10.5px var(--mono); color: var(--cyan); }
+
+  .c-files { display: flex; flex-direction: column; gap: 3px; }
+
+  .cf {
+    font: 400 10px var(--mono);
+    color: var(--dim);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .cf::before { content: '├─'; opacity: .32; flex-shrink: 0; }
+  .cf:last-child::before { content: '└─'; opacity: .32; }
+  .cf-dim  { color: var(--dim2); }
+  .cf-new  { color: var(--green); }
+  .cf-plan { color: var(--gold); opacity: .85; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font: 600 9px var(--mono); letter-spacing: .1em; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 99px; margin-top: 10px;
+  }
+
+  .b-done    { background: rgba(34,197,94,.1);  color: var(--green); border: 1px solid rgba(34,197,94,.25); }
+  .b-plan    { background: rgba(75,106,247,.08);color: var(--blue);  border: 1px solid rgba(75,106,247,.2); }
+  .b-future  { background: rgba(168,85,247,.08);color: var(--mag);   border: 1px solid rgba(168,85,247,.2); }
+
+  /* JSON */
+  .json {
+    background: rgba(0,0,0,.4);
+    border: 1px solid var(--bd);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-top: 13px;
+    font: 400 11px var(--mono);
+    color: var(--dim2);
+    line-height: 2;
+    overflow-x: auto;
+  }
+
+  .je { color: var(--dim); display: block; margin-bottom: 5px; }
+  .jk { color: var(--cyan); }
+  .jv { color: var(--green); }
+  .jn { color: var(--orange); }
+  .ju { color: var(--purple); }
+
+  /* DIV */
+  .div {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--bd2), transparent);
+    margin: 44px 0;
+  }
+
+  /* INVARIANTES */
+  .invs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+  .inv {
+    background: var(--sf);
+    border: 1px solid var(--bd);
+    border-radius: 9px;
+    padding: 14px 16px;
+    display: flex; gap: 14px;
+  }
+
+  .inv-n { font: 700 20px var(--mono); color: rgba(75,106,247,.28); flex-shrink: 0; min-width: 26px; line-height: 1.2; }
+  .inv-t { font: 400 12px var(--body); color: var(--dim2); line-height: 1.65; }
+  .inv-t strong { color: var(--tx); font-weight: 600; }
+  .inv-t code   { font: 500 10.5px var(--mono); color: var(--cyan); }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; font: 400 11px var(--mono); color: var(--dim); margin-top: 12px; }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  .ld { width: 8px; height: 8px; border-radius: 2px; }
+
+  @media (max-width: 760px) {
+    .g3 { grid-template-columns: 1fr 1fr; }
+    .pattern { grid-template-columns: 1fr; }
+    .p-arrow { display: none; }
+    .invs { grid-template-columns: 1fr; }
+    .g2 { grid-template-columns: 1fr; }
+    .s-note { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">Kobalt Red FLAT &nbsp;·&nbsp; v3.2.1</div>
+    <div class="title">Arquitectura del Sistema</div>
+    <div class="subtitle">meta-estructura de servicios &nbsp;·&nbsp; patrón universal de registro y descubrimiento</div>
+  </div>
+
+  <!-- AXIOMA -->
+  <div class="axiom">
+    <div class="axiom-label">Doctrina central</div>
+    <div class="axiom-text">
+      La verdad nace en <span class="hl">local</span>
+      <span class="sep">·</span>
+      La red es persistencia <span class="hl">opaca</span> y <span class="hl">pasiva</span>
+      <span class="sep">·</span>
+      El servidor <span class="hl2">desaparece</span> después del login
+    </div>
+  </div>
+
+  <!-- PATRÓN UNIVERSAL -->
+  <div class="section-header" style="margin-bottom:14px;">
+    <div class="s-dot" style="color:var(--cyan);background:var(--cyan);"></div>
+    <div class="s-title" style="color:var(--cyan);">Patrón Universal</div>
+    <div class="s-note">aplica a storages · proxies · relays · models sin excepción</div>
+  </div>
+
+  <div class="pattern">
+    <div class="p-step">
+      <div class="ps-num">①</div>
+      <div class="ps-label">Registro</div>
+      <div class="ps-desc">Admin configura credenciales. Se genera un <code style="font:500 11px var(--mono);color:var(--cyan)">service_key</code> aleatorio. Todo en <code style="font:500 11px var(--mono);color:var(--cyan)">services/*.json</code> — secreto, nunca sale del servidor.</div>
+    </div>
+    <div class="p-arrow">→</div>
+    <div class="p-step">
+      <div class="ps-num">②</div>
+      <div class="ps-label">Publicación</div>
+      <div class="ps-desc"><code style="font:500 11px var(--mono);color:var(--cyan)">?action=active</code> genera JSON público con metadata sin credenciales. Accesible sin autenticación por cualquier nodo.</div>
+    </div>
+    <div class="p-arrow">→</div>
+    <div class="p-step">
+      <div class="ps-num">③</div>
+      <div class="ps-label">Consumo</div>
+      <div class="ps-desc">Nodo descarga JSON, guarda configs en IDB cifradas con D. Opera directo con cada servicio. El servidor puede caer — el nodo no lo nota.</div>
+    </div>
+  </div>
+
+  <div class="callout callout-cyan" style="margin-bottom:52px;">
+    <strong>Invariante fundamental:</strong> el nodo genera por cada llamada
+    <code>HMAC(service_key, id‖window, 16)</code> — efímero, expira en ≤ 30 s.
+    El <code>service_key</code> vive µs en el nodo (Tipo B). Capturado = inútil. Servidor puede caer.
+  </div>
+
+  <!-- ÁRBOL -->
+  <div class="section-header" style="margin-bottom:16px;">
+    <div class="s-dot" style="color:var(--blue);background:var(--blue);"></div>
+    <div class="s-title" style="color:var(--blue);">Árbol del Proyecto</div>
+  </div>
+
+  <div class="tree">
+<span class="t-root">kobalt_flat_v3/</span>
+├── <span class="t-cat">core/</span>
+│   └── <span class="t-new">kernel_flat.js</span>          <span class="t-com">← v3.2.1: saveRaw · loadRaw · _storeServiceKeys · openSession actualizado</span>
+├── <span class="t-cat">apps/</span>
+│   └── <span class="t-new">commerce.js</span>             <span class="t-com">← openSession(H_u, rawServices, null) · buildServices desde IDB</span>
+├── <span class="t-cat">red/</span>
+│   └── <span class="t-new">connectors.js</span>           <span class="t-com">← token HMAC efímero · fallback_url automático · ciego al tipo</span>
+├── <span class="t-cat">visual/</span>
+│   ├── <span class="t-dim">kobalt.css</span>
+│   └── <span class="t-dim">kobalt.visual.js</span>        <span class="t-com">← garantiza I7: sync ≠ repaint</span>
+│
+├── <span class="t-new">auth.php</span>                    <span class="t-com">← 𝕊 punto de entrada del servidor · simétrico a index.html</span>
+│                               <span class="t-com">   login → {H_u, services: [{id, url, fallback_url?, key_enc}]}</span>
+├── <span class="t-cat">data/</span>                       <span class="t-com">← persistencia del servidor (no es un storage de blobs)</span>
+│   └── <span class="t-dim">users.json</span>              <span class="t-com">← {name, phone, H_u} — SECRETO, nunca sale</span>
+│
+├── <span class="t-cat">storages/</span>                   <span class="t-com">← CATEGORÍA: persistencia permanente de blobs opacos</span>
+│   ├── <span class="t-new">common.php</span>              <span class="t-com">← base: token HMAC · loadService · validaciones · AES-GCM</span>
+│   ├── <span class="t-new">store.php</span>               <span class="t-com">← PHPHost endpoint: filesystem · auth HMAC</span>
+│   ├── <span class="t-new">proxy.php</span>               <span class="t-com">← traduce HMAC → auth nativa (GitLab token / AWS Sig V4)</span>
+│   ├── <span class="t-new">services_api.php</span>        <span class="t-com">← función pura: active (público) · types · list (admin)</span>
+│   ├── <span class="t-dim">register.html</span>           <span class="t-com">← shell genérico · descubre tipos desde definition.json</span>
+│   ├── <span class="t-type">GitLab/</span>                 <span class="t-com">← nodo → proxy.php → GitLab API</span>
+│   │   ├── <span class="t-dim">definition.json · gitlab.php · register.php</span>
+│   │   └── <span class="t-dim">services/*.json</span>      <span class="t-com">← {token, project_id, service_key} SECRETO</span>
+│   ├── <span class="t-type">R2/</span>                     <span class="t-com">← nodo → proxy.php → Cloudflare R2 (AWS Sig V4)</span>
+│   │   ├── <span class="t-dim">definition.json · r2.php · register.php</span>
+│   │   └── <span class="t-dim">services/*.json</span>      <span class="t-com">← {access_key, secret_key, bucket, service_key} SECRETO</span>
+│   └── <span class="t-type">PHPHost/</span>                <span class="t-com">← nodo → store.php directo en cualquier hosting PHP</span>
+│       ├── <span class="t-dim">definition.json · register.php</span>
+│       └── <span class="t-dim">services/*.json</span>      <span class="t-com">← {url, data_dir, service_key} SECRETO</span>
+│
+├── <span class="t-cat">proxies/</span>                    <span class="t-com">← CATEGORÍA: intermediarios stateless · fallback cuando servidor principal cae</span>
+│   ├── <span class="t-plan">services_api.php · register.html</span>
+│   ├── <span class="t-plan">WasmerPHP/</span>              <span class="t-com">← mismo proxy.php en Wasmer · sin estado · reinicio instantáneo</span>
+│   │   ├── <span class="t-plan">definition.json</span>     <span class="t-com">← runtime: php</span>
+│   │   └── <span class="t-plan">services/*.json</span>     <span class="t-com">← {url, service_key, fallback_for: [...]}</span>
+│   └── <span class="t-plan">Node/</span>                   <span class="t-com">← Vercel Edge · Deno Deploy · Cloudflare Workers</span>
+│       └── <span class="t-plan">definition.json</span>     <span class="t-com">← runtime: js</span>
+│
+├── <span class="t-cat">relays/</span>                     <span class="t-com">← CATEGORÍA: nodos que conectan nodos sin IP pública alcanzable</span>
+│   ├── <span class="t-plan">services_api.php · register.html</span>
+│   ├── <span class="t-plan">IPv4/</span>                   <span class="t-com">← servidor con IP pública fija · TCP/WS</span>
+│   ├── <span class="t-plan">WebRTC/</span>                 <span class="t-com">← STUN/TURN para P2P browser</span>
+│   └── <span class="t-plan">CloudflareTunnel/</span>       <span class="t-com">← túnel HTTPS sin IP pública ni puertos abiertos (cloudflared)</span>
+│
+├── <span class="t-cat">models/</span>                     <span class="t-com">← CATEGORÍA: APIs de IA · API key custodiada · nodo nunca la ve</span>
+│   ├── <span class="t-plan">services_api.php · register.html</span>
+│   ├── <span class="t-plan">Groq/</span>                   <span class="t-com">← Groq inference API (groq.com) · LLaMA · Mixtral</span>
+│   └── <span class="t-plan">Gemini/</span>                 <span class="t-com">← Google Gemini API · gemini-2.0-flash · gemini-2.5-pro</span>
+│
+└── <span class="t-dim">index.html</span>                  <span class="t-com">← punto de entrada · puente β</span>
+  </div>
+
+  <div class="legend">
+    <span><span class="ld" style="background:var(--green);"></span>implementado</span>
+    <span><span class="ld" style="background:var(--gold);opacity:.8;"></span>planificado</span>
+    <span><span class="ld" style="background:var(--dim2);"></span>sin cambios</span>
+  </div>
+
+  <div class="div"></div>
+
+  <!-- STORAGES -->
+  <div class="section">
+    <div class="section-header">
+      <div class="s-dot" style="color:var(--green);background:var(--green);"></div>
+      <div class="s-title" style="color:var(--green);">Storages</div>
+      <div class="s-badge" style="color:var(--green);border-color:rgba(34,197,94,.3);">persistencia</div>
+      <div class="s-note">almacenamiento permanente · blobs opacos · el nodo opera directo</div>
+    </div>
+    <div class="g g3">
+
+      <div class="card" style="--ca:var(--green);--cb:var(--cyan);">
+        <span class="c-icon">🗄️</span>
+        <div class="c-name">PHPHost</div>
+        <div class="c-type">nodo → store.php → filesystem</div>
+        <div class="c-desc">Cualquier hosting PHP. El nodo llama directo a <code>store.php</code>. El servicio opera sobre su filesystem local. Dos directorios en el mismo hosting = dos servicios independientes.</div>
+        <div class="c-files">
+          <div class="cf"><span class="cf-new">definition.json</span></div>
+          <div class="cf"><span class="cf-new">register.php</span></div>
+          <div class="cf"><span class="cf-new">store.php — el endpoint</span></div>
+        </div>
+        <div class="badge b-done">✓ implementado</div>
+      </div>
+
+      <div class="card" style="--ca:#fc6d26;--cb:var(--orange);">
+        <span class="c-icon">🦊</span>
+        <div class="c-name">GitLab</div>
+        <div class="c-type">nodo → proxy.php → GitLab API</div>
+        <div class="c-desc">Repositorio GitLab como almacén de blobs. <code>proxy.php</code> traduce el token HMAC del nodo al <code>PRIVATE-TOKEN</code> de GitLab. Si el proxy principal cae, el nodo usa Wasmer automáticamente.</div>
+        <div class="c-files">
+          <div class="cf"><span class="cf-dim">definition.json</span></div>
+          <div class="cf"><span class="cf-dim">gitlab.php — driver</span></div>
+          <div class="cf"><span class="cf-dim">register.php</span></div>
+        </div>
+        <div class="badge b-done">✓ implementado</div>
+      </div>
+
+      <div class="card" style="--ca:var(--orange);--cb:var(--gold);">
+        <span class="c-icon">☁️</span>
+        <div class="c-name">Cloudflare R2</div>
+        <div class="c-type">nodo → proxy.php → R2 S3 API</div>
+        <div class="c-desc">Object storage S3-compatible. <code>proxy.php</code> computa AWS Signature V4 con claves custodiadas en servidor. El nodo nunca ve las claves AWS. Fallback a Wasmer si el proxy cae.</div>
+        <div class="c-files">
+          <div class="cf"><span class="cf-dim">definition.json</span></div>
+          <div class="cf"><span class="cf-dim">r2.php — AWS Sig V4</span></div>
+          <div class="cf"><span class="cf-dim">register.php</span></div>
+        </div>
+        <div class="badge b-done">✓ implementado</div>
+      </div>
+
+    </div>
+
+    <div class="json">
+      <span class="je">GET storages/services_api.php?action=active &nbsp;&nbsp;← sin auth · público · nodo lo descarga al arrancar</span>
+{ <span class="jk">"storages"</span>: [<br>
+&nbsp;&nbsp;{ <span class="jk">"id"</span>: <span class="jv">"srv-dir1"</span>, <span class="jk">"type"</span>: <span class="jv">"phphost"</span>, <span class="jk">"url"</span>: <span class="ju">"https://kobalt.app/store.php"</span>, <span class="jk">"priority"</span>: <span class="jn">1</span> },<br>
+&nbsp;&nbsp;{ <span class="jk">"id"</span>: <span class="jv">"gitlab-main"</span>, <span class="jk">"type"</span>: <span class="jv">"gitlab"</span>, <span class="jk">"url"</span>: <span class="ju">"https://kobalt.app/proxy.php"</span>, <span class="jk">"fallback_url"</span>: <span class="ju">"https://wasmer.io/.../proxy.php"</span> }<br>
+], <span class="jk">"strategy"</span>: { <span class="jk">"actualidad"</span>: <span class="jv">"replicate_all"</span>, <span class="jk">"payloads"</span>: <span class="jv">"first_available"</span> }, <span class="jk">"sync"</span>: { <span class="jk">"interval_ms"</span>: <span class="jn">20000</span> } }
+    </div>
+  </div>
+
+  <!-- PROXIES -->
+  <div class="section">
+    <div class="section-header">
+      <div class="s-dot" style="color:var(--cyan);background:var(--cyan);"></div>
+      <div class="s-title" style="color:var(--cyan);">Proxies</div>
+      <div class="s-badge" style="color:var(--cyan);border-color:rgba(41,197,246,.3);">stateless</div>
+      <div class="s-note">el nodo llama directo vía proxies · el servidor puede caer</div>
+    </div>
+
+    <div class="callout callout-blue" style="margin-bottom:14px;">
+      El nodo siempre llama <strong>directo</strong> al endpoint registrado.
+      El proxy es un tipo de servicio — su endpoint traduce autenticación (HMAC → auth nativa).
+      <strong>Wasmer es efímero por diseño:</strong> stateless, sin estado que perder, reinicio instantáneo.
+      Eso lo hace candidato perfecto para fallback: el servidor Kobalt puede caer, GitLab y R2 siguen respondiendo vía Wasmer.
+    </div>
+
+    <div class="g g2">
+
+      <div class="card" style="--ca:var(--cyan);--cb:var(--blue);">
+        <span class="c-icon">⚡</span>
+        <div class="c-name">Wasmer PHP</div>
+        <div class="c-type">runtime: php · efímero · stateless</div>
+        <div class="c-desc">El mismo <code>proxy.php</code> desplegado en Wasmer. Sin código diferente. El nodo lo intenta automáticamente via <code>fallback_url</code> si el servidor principal no responde. GitLab y R2 siguen vivos — son servicios independientes.</div>
+        <div class="c-files">
+          <div class="cf"><span class="cf-plan">definition.json · runtime: php</span></div>
+          <div class="cf"><span class="cf-plan">register.php</span></div>
+          <div class="cf"><span class="cf-plan">services/*.json · {url, service_key}</span></div>
+        </div>
+        <div class="badge b-plan">◎ planificado</div>
+      </div>
+
+      <div class="card" style="--ca:var(--purple);--cb:var(--mag);">
+        <span class="c-icon">🟨</span>
+        <div class="c-name">Node / JS</div>
+        <div class="c-type">runtime: js · Vercel · Deno · CF Workers</div>
+        <div class="c-desc">Proxy JavaScript para entornos sin PHP. Misma lógica HMAC, misma interfaz G1-G4. Vercel Edge Functions, Deno Deploy o Cloudflare Workers son candidatos naturales. Registrable como <code>fallback_url</code> igual que Wasmer.</div>
+        <div class="c-files">
+          <div class="cf"><span class="cf-plan">definition.json · runtime: js</span></div>
+          <div class="cf"><span class="cf-plan">register.php</span></div>
+          <div class="cf"><span class="cf-plan">services/*.json · {url, service_key}</span></div>
+        </div>
+        <div class="badge b-plan">◎ planificado</div>
+      </div>
+
+    </div>
+
+    <div class="json">
+      <span class="je">GET proxies/services_api.php?action=active &nbsp;&nbsp;← mismo patrón</span>
+{ <span class="jk">"proxies"</span>: [<br>
+&nbsp;&nbsp;{ <span class="jk">"id"</span>: <span class="jv">"wasmer-1"</span>, <span class="jk">"runtime"</span>: <span class="jv">"php"</span>, <span class="jk">"url"</span>: <span class="ju">"https://wasmer.io/.../proxy.php"</span>, <span class="jk">"fallback_for"</span>: [<span class="jv">"gitlab-main"</span>, <span class="jv">"r2-backup"</span>] },<br>
+&nbsp;&nbsp;{ <span class="jk">"id"</span>: <span class="jv">"vercel-edge"</span>, <span class="jk">"runtime"</span>: <span class="jv">"js"</span>, <span class="jk">"url"</span>: <span class="ju">"https://kobalt.vercel.app/api/proxy"</span> }<br>
+]}
+    </div>
+  </div>
+
+  <!-- RELAYS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="s-dot" style="color:var(--purple);background:var(--purple);"></div>
+      <div class="s-title" style="color:var(--purple);">Relays</div>
+      <div class="s-badge" style="color:var(--purple);border-color:rgba(123,79,224,.3);">enrutamiento</div>
+      <div class="s-note">conectan nodos sin IP pública alcanzable · sin almacenamiento · futuro</div>
+    </div>
+    <div class="g g3">
+
+      <div class="card" style="--ca:var(--purple);--cb:var(--blue);">
+        <span class="c-icon">🔀</span>
+        <div class="c-name">IPv4 Relay</div>
+        <div class="c-type">protocolo: tcp / ws · IP fija</div>
+        <div class="c-desc">Servidor con IP pública fija que enruta tráfico entre nodos que no tienen IP alcanzable. Mismo mecanismo de <code>service_key</code> para autenticar nodos que se conectan al relay.</div>
+        <div class="c-files">
+          <div class="cf"><span class="cf-plan">definition.json · {ip, port, protocol}</span></div>
+          <div class="cf"><span class="cf-plan">register.php</span></div>
+        </div>
+        <div class="badge b-future">◎ futuro</div>
+      </div>
+
+      <div class="card" style="--ca:var(--mag);--cb:var(--pink);">
+        <span class="c-icon">🌐</span>
+        <div class="c-name">WebRTC</div>
+        <div class="c-type">protocolo: webrtc · STUN/TURN</div>
+        <div class="c-desc">Servidor STUN/TURN para negociación P2P entre nodos de browser. Permite conexión directa entre nodos una vez completada la señalización ICE.</div>
+        <div class="c-files">
+          <div class="cf"><span class="cf-plan">definition.json · {stun_url, turn_url}</span></div>
+          <div class="cf"><span class="cf-plan">register.php</span></div>
+        </div>
+        <div class="badge b-future">◎ futuro</div>
+      </div>
+
+      <div class="card" style="--ca:#F38020;--cb:#FBAD41;">
+        <span class="c-icon">🌀</span>
+        <div class="c-name">Cloudflare Tunnel</div>
+        <div class="c-type">protocolo: https · sin abrir puertos</div>
+        <div class="c-desc"><code>cloudflared</code> crea un túnel HTTPS que expone un nodo local como endpoint público — sin IP pública, sin abrir puertos en el router. Cloudflare provee la URL. Ideal para nodos detrás de NAT.</div>
+        <div class="c-files">
+          <div class="cf"><span class="cf-plan">definition.json · {tunnel_url}</span></div>
+          <div class="cf"><span class="cf-plan">register.php</span></div>
+        </div>
+        <div class="badge b-future">◎ futuro</div>
+      </div>
+
+    </div>
+
+    <div class="json">
+      <span class="je">GET relays/services_api.php?action=active &nbsp;&nbsp;← mismo patrón</span>
+{ <span class="jk">"relays"</span>: [<br>
+&nbsp;&nbsp;{ <span class="jk">"id"</span>: <span class="jv">"relay-vps"</span>,   <span class="jk">"type"</span>: <span class="jv">"ipv4"</span>,              <span class="jk">"url"</span>: <span class="ju">"wss://relay.kobalt.app:8080"</span> },<br>
+&nbsp;&nbsp;{ <span class="jk">"id"</span>: <span class="jv">"stun-1"</span>,      <span class="jk">"type"</span>: <span class="jv">"webrtc"</span>,            <span class="jk">"stun_url"</span>: <span class="ju">"stun:stun.kobalt.app:3478"</span> },<br>
+&nbsp;&nbsp;{ <span class="jk">"id"</span>: <span class="jv">"cf-tunnel-1"</span>, <span class="jk">"type"</span>: <span class="jv">"cloudflare-tunnel"</span>, <span class="jk">"url"</span>: <span class="ju">"https://abc123.trycloudflare.com"</span> }<br>
+]}
+    </div>
+  </div>
+
+  <!-- MODELS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="s-dot" style="color:var(--gold);background:var(--gold);"></div>
+      <div class="s-title" style="color:var(--gold);">Models</div>
+      <div class="s-badge" style="color:var(--gold);border-color:rgba(234,179,8,.3);">inteligencia artificial</div>
+      <div class="s-note">API key custodiada en servidor · nodo nunca la ve · mismo token HMAC</div>
+    </div>
+    <div class="g g2">
+
+      <div class="card" style="--ca:var(--gold);--cb:#f59e0b;">
+        <span class="c-icon">⚡</span>
+        <div class="c-name">Groq</div>
+        <div class="c-type">proveedor: groq.com · inferencia rápida</div>
+        <div class="c-desc">Groq (groq.com) — inferencia de alta velocidad sobre modelos como LLaMA 3.3, Mixtral, Gemma. La API key queda en el servidor. El nodo envía el prompt con token HMAC efímero. El proxy hace la llamada real.</div>
+        <div class="c-files">
+          <div class="cf"><span class="cf-plan">definition.json · {model, endpoint}</span></div>
+          <div class="cf"><span class="cf-plan">register.php</span></div>
+          <div class="cf"><span class="cf-plan">services/*.json · {api_key, model} SECRETO</span></div>
+        </div>
+        <div class="badge b-plan">◎ planificado</div>
+      </div>
+
+      <div class="card" style="--ca:#4285F4;--cb:#34A853;">
+        <span class="c-icon">💎</span>
+        <div class="c-name">Gemini</div>
+        <div class="c-type">proveedor: google · multimodal</div>
+        <div class="c-desc">Google Gemini API — <code>gemini-2.0-flash</code>, <code>gemini-2.5-pro</code>. Mismo mecanismo: API key custodiada en servidor, token HMAC efímero del nodo, proxy ejecuta la llamada real.</div>
+        <div class="c-files">
+          <div class="cf"><span class="cf-plan">definition.json · {model, endpoint}</span></div>
+          <div class="cf"><span class="cf-plan">register.php</span></div>
+          <div class="cf"><span class="cf-plan">services/*.json · {api_key, model} SECRETO</span></div>
+        </div>
+        <div class="badge b-plan">◎ planificado</div>
+      </div>
+
+    </div>
+
+    <div class="json">
+      <span class="je">GET models/services_api.php?action=active &nbsp;&nbsp;← API key nunca aparece aquí</span>
+{ <span class="jk">"models"</span>: [<br>
+&nbsp;&nbsp;{ <span class="jk">"id"</span>: <span class="jv">"groq-llama"</span>,  <span class="jk">"provider"</span>: <span class="jv">"groq"</span>,   <span class="jk">"model"</span>: <span class="jv">"llama-3.3-70b"</span>,   <span class="jk">"url"</span>: <span class="ju">"https://kobalt.app/models/proxy.php"</span> },<br>
+&nbsp;&nbsp;{ <span class="jk">"id"</span>: <span class="jv">"gemini-flash"</span>, <span class="jk">"provider"</span>: <span class="jv">"google"</span>, <span class="jk">"model"</span>: <span class="jv">"gemini-2.0-flash"</span>, <span class="jk">"url"</span>: <span class="ju">"https://kobalt.app/models/proxy.php"</span> }<br>
+]}
+    </div>
+  </div>
+
+  <div class="div"></div>
+
+  <!-- INVARIANTES -->
+  <div class="section-header" style="margin-bottom:18px;">
+    <div class="s-dot" style="color:var(--mag);background:var(--mag);"></div>
+    <div class="s-title" style="color:var(--mag);">Invariantes del Sistema</div>
+    <div class="s-note">aplican a las 4 categorías sin excepción</div>
+  </div>
+
+  <div class="invs">
+    <div class="inv">
+      <div class="inv-n">I1</div>
+      <div class="inv-t"><strong>Adición pura.</strong> Añadir un tipo nuevo en cualquier categoría no modifica ningún archivo existente. Solo se crea una carpeta con <code>definition.json</code> + <code>register.php</code> + endpoint.</div>
+    </div>
+    <div class="inv">
+      <div class="inv-n">I2</div>
+      <div class="inv-t"><strong>JSON público sin secretos.</strong> <code>action=active</code> nunca expone <code>service_key</code>, <code>api_key</code> ni ninguna credencial. Solo metadata operativa.</div>
+    </div>
+    <div class="inv">
+      <div class="inv-n">I3</div>
+      <div class="inv-t"><strong>Token efímero.</strong> <code>HMAC(service_key, id‖window, 16)</code> expira en ≤ 30 s. El <code>service_key</code> vive µs en el nodo (Tipo B). Capturado = inútil.</div>
+    </div>
+    <div class="inv">
+      <div class="inv-n">I4</div>
+      <div class="inv-t"><strong>Nodo autónomo post-login.</strong> El servidor Kobalt puede caer. El nodo tiene todo en IDB cifrado con D. Cada servicio es independiente de los demás.</div>
+    </div>
+    <div class="inv">
+      <div class="inv-n">I5</div>
+      <div class="inv-t"><strong><code>services_api.php</code> es función pura.</strong> Solo lee filesystem. Nunca escribe. Lag de sincronización = cero matemático.</div>
+    </div>
+    <div class="inv">
+      <div class="inv-n">I6</div>
+      <div class="inv-t"><strong>El nodo es ciego al tipo.</strong> Solo envía <code>(service_id, token, data)</code>. No sabe si detrás hay filesystem, GitLab, R2, Wasmer o Groq.</div>
+    </div>
+    <div class="inv">
+      <div class="inv-n">I7</div>
+      <div class="inv-t"><strong>Degradación graciosa.</strong> La caída de cualquier servicio no afecta a los demás. El nodo opera con los disponibles y degrada a <code>local_only</code> si todos caen.</div>
+    </div>
+    <div class="inv">
+      <div class="inv-n">I8</div>
+      <div class="inv-t"><strong>Mismo patrón, 4 categorías.</strong> <code>storages · proxies · relays · models</code> comparten estructura de registro, publicación y consumo.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:72px;text-align:center;font:400 10px var(--mono);color:var(--dim);letter-spacing:.18em;">
+    KOBALT RED FLAT &nbsp;·&nbsp; v3.2.1 &nbsp;·&nbsp; LA VERDAD NACE EN LOCAL
+  </div>
+
+</div>
+</body>
+</html>

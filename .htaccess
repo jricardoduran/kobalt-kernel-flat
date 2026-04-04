@@ -1,0 +1,26 @@
+# Kobalt Red FLAT — .htaccess v3.3.0
+# Compatible con Apache 2.2 y 2.4 (GoDaddy, Hostinger, hosting compartido)
+
+Options -Indexes
+AddDefaultCharset UTF-8
+
+# MIME types explícitos
+AddType text/css             .css
+AddType text/javascript      .js
+AddType text/html            .html
+AddType application/json     .json
+
+# ── Pasar header X-Kobalt-Admin a PHP ────────────────────────────────────────
+# GoDaddy y algunos hostings compartidos filtran headers personalizados.
+# Esta regla los expone como variable de entorno que PHP puede leer.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP:X-Kobalt-Admin} .+
+  RewriteRule .* - [E=HTTP_X_KOBALT_ADMIN:%{HTTP:X-Kobalt-Admin},L]
+</IfModule>
+
+# ── Proteger archivos sensibles ───────────────────────────────────────────────
+# Los JSON de servicios (credenciales) nunca accesibles por HTTP directamente
+<FilesMatch "^(users\.json|services\.json|ejemplo\.json)$">
+    Require all denied
+</FilesMatch>

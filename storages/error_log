@@ -1,0 +1,35 @@
+[04-Apr-2026 13:48:06 UTC] PHP Fatal error:  Uncaught TypeError: glGet(): Return value must be of type ?string, array returned in /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/GitLab/gitlab.php:103
+Stack trace:
+#0 /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/proxy.php(34): glGet()
+#1 {main}
+  thrown in /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/GitLab/gitlab.php on line 103
+[04-Apr-2026 13:48:29 UTC] PHP Fatal error:  Uncaught TypeError: glGet(): Return value must be of type ?string, array returned in /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/GitLab/gitlab.php:103
+Stack trace:
+#0 /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/proxy.php(34): glGet()
+#1 {main}
+  thrown in /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/GitLab/gitlab.php on line 103
+[04-Apr-2026 13:48:48 UTC] PHP Fatal error:  Uncaught TypeError: glGet(): Return value must be of type ?string, array returned in /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/GitLab/gitlab.php:103
+Stack trace:
+#0 /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/proxy.php(34): glGet()
+#1 {main}
+  thrown in /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/GitLab/gitlab.php on line 103
+[04-Apr-2026 13:49:19 UTC] PHP Fatal error:  Uncaught TypeError: glGet(): Return value must be of type ?string, array returned in /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/GitLab/gitlab.php:103
+Stack trace:
+#0 /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/proxy.php(34): glGet()
+#1 {main}
+  thrown in /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/GitLab/gitlab.php on line 103
+[04-Apr-2026 13:49:41 UTC] PHP Fatal error:  Uncaught TypeError: glGet(): Return value must be of type ?string, array returned in /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/GitLab/gitlab.php:103
+Stack trace:
+#0 /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/proxy.php(34): glGet()
+#1 {main}
+  thrown in /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/GitLab/gitlab.php on line 103
+[04-Apr-2026 13:50:02 UTC] PHP Fatal error:  Uncaught TypeError: glGet(): Return value must be of type ?string, array returned in /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/GitLab/gitlab.php:103
+Stack trace:
+#0 /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/proxy.php(34): glGet()
+#1 {main}
+  thrown in /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/GitLab/gitlab.php on line 103
+[04-Apr-2026 13:50:22 UTC] PHP Fatal error:  Uncaught TypeError: glGet(): Return value must be of type ?string, array returned in /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/GitLab/gitlab.php:103
+Stack trace:
+#0 /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/proxy.php(34): glGet()
+#1 {main}
+  thrown in /home/ce87ol7g6rn4/public_html/flat/pruebas/v5/kobalt_flat_v3/storages/GitLab/gitlab.php on line 103

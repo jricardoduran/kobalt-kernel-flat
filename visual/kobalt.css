@@ -1,0 +1,250 @@
+/*
+ * kobalt.css — Sistema visual Kobalt Red FLAT
+ *
+ * UNIVERSO: 𝕃 Local
+ * PROPÓSITO: tokens de diseño + layout + componentes
+ * NO conoce el kernel. Cambiable sin tocar lógica.
+ *
+ * Paleta: espectro cyan → blue → purple sobre fondos azul marino profundo
+ * Fuentes: DM Sans (cuerpo), JetBrains Mono (código)
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ── Espectro Kobalt ──────────────────────── */
+  --p-cyan:    #29C5F6;
+  --p-blue:    #4D6AF7;
+  --p-purple:  #7B4FE0;
+  --p-magenta: #A855F7;
+  --p-pink:    #E879A8;
+  --p-orange:  #F6821F;
+
+  /* ── Fondos ───────────────────────────────── */
+  --surface-base:    #030810;
+  --surface:         #050C18;
+  --surface-raised:  #091220;
+  --surface-overlay: #0D1A2D;
+
+  /* ── Texto ────────────────────────────────── */
+  --text-primary:  #E8ECF4;
+  --text-secondary:#8B95A8;
+  --text-muted:    #4A5568;
+
+  /* ── Bordes ───────────────────────────────── */
+  --border-default: rgba(75, 106, 247, 0.15);
+  --border-hover:   rgba(75, 106, 247, 0.3);
+
+  /* ── Spacing ──────────────────────────────── */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+
+  /* ── Radios ───────────────────────────────── */
+  --r-sm: 9px; --r-md: 13px; --r-lg: 18px;
+
+  /* ── Fuentes ──────────────────────────────── */
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* ── Reset y base ───────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--surface-base);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(75,106,247,0.06) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+/* ── Scrollbar ──────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+
+/* ── Layout ─────────────────────────────────── */
+
+.app-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--sp-4);
+  position: relative; z-index: 1;
+}
+
+/* ── Header ─────────────────────────────────── */
+
+.app-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--sp-4) 0;
+  border-bottom: 1px solid var(--border-default);
+  margin-bottom: var(--sp-6);
+}
+
+.app-title {
+  font-size: 1.25rem; font-weight: 700;
+  background: linear-gradient(135deg, var(--p-cyan), var(--p-blue), var(--p-purple));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Botones ────────────────────────────────── */
+
+.btn {
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-sm);
+  background: var(--surface-raised);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.875rem; font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn:hover { border-color: var(--border-hover); background: var(--surface-overlay); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--p-blue), var(--p-purple));
+  border: none; color: white;
+  box-shadow: 0 2px 8px rgba(75,106,247,0.3);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 4px 12px rgba(75,106,247,0.4);
+  transform: translateY(-1px);
+}
+
+.btn-sm { padding: var(--sp-1) var(--sp-3); font-size: 0.8rem; }
+
+/* ── Inputs ─────────────────────────────────── */
+
+input, select, textarea {
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-sm);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  transition: border-color 0.15s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--p-blue);
+  box-shadow: 0 0 0 3px rgba(75,106,247,0.15);
+}
+
+input::placeholder { color: var(--text-muted); }
+
+label {
+  display: block;
+  font-size: 0.8rem; font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: var(--sp-1);
+}
+
+/* ── Cards ──────────────────────────────────── */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+  transition: border-color 0.15s;
+}
+
+.card:hover { border-color: var(--border-hover); }
+
+/* ── Paneles alternables ────────────────────── */
+
+.panel-view { display: none; }
+.panel-view.active { display: block; }
+
+/* ── Grid ───────────────────────────────────── */
+
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--sp-4);
+}
+
+/* ── Badges ─────────────────────────────────── */
+
+.badge {
+  display: inline-flex; align-items: center; gap: var(--sp-1);
+  padding: 2px var(--sp-2);
+  border-radius: 999px;
+  font-size: 0.75rem; font-weight: 500;
+  font-family: var(--font-mono);
+}
+
+.badge-ok { background: rgba(34,197,94,0.15); color: #22C55E; }
+.badge-warn { background: rgba(234,179,8,0.15); color: #EAB308; }
+.badge-error { background: rgba(239,68,68,0.15); color: #EF4444; }
+
+/* ── Toast ──────────────────────────────────── */
+
+.toast-container {
+  position: fixed; bottom: var(--sp-6); right: var(--sp-6);
+  z-index: 9999;
+}
+
+.toast {
+  background: var(--surface-overlay);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-sm);
+  padding: var(--sp-3) var(--sp-4);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  animation: toastIn 0.2s ease;
+  margin-top: var(--sp-2);
+}
+
+@keyframes toastIn { from { opacity: 0; transform: translateY(8px); } }
+
+/* ── Mono text (kernel info) ────────────────── */
+
+.mono { font-family: var(--font-mono); font-size: 0.8rem; }
+.text-muted { color: var(--text-muted); }
+.text-secondary { color: var(--text-secondary); }
+.text-cyan { color: var(--p-cyan); }
+.text-blue { color: var(--p-blue); }
+
+/* ── Toolbar ────────────────────────────────── */
+
+.toolbar {
+  display: flex; gap: var(--sp-2); flex-wrap: wrap;
+  padding: var(--sp-3) 0;
+}
+
+/* ── Separator ──────────────────────────────── */
+
+.sep {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-default), transparent);
+  margin: var(--sp-4) 0;
+}
+
+/* ── Form group ─────────────────────────────── */
+
+.form-group { margin-bottom: var(--sp-4); }
+
+.form-row {
+  display: flex; gap: var(--sp-3); align-items: end;
+}
+
+.form-row > * { flex: 1; }
+
