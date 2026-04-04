@@ -12,6 +12,12 @@
   let syncHandle = null;
   let uiCache    = { grid: '', stats: '', badge: '' };
 
+  // F1–F5 — estado visual
+  let viewMode     = localStorage.getItem('kobalt:view') || 'list';
+  let activeFilter = 'all';
+  let activeSort   = 'ts-desc';
+  let searchQuery  = '';
+
   // ─── UI diferencial de cuentas locales ───────────────
   let _accountsSig = '';
 
@@ -44,6 +50,40 @@
   function parsePayload(raw) {
     try { return JSON.parse(raw); }
     catch { return { _error: true, nombre: '[payload corrupto]', stock: 0, sku: '' }; }
+  }
+
+  // F5 — normalización NFD para búsqueda insensible a tildes
+  function nfd(s) {
+    return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
+
+  // F2 — chips de resumen (opera sobre el conjunto completo, sin filtrar)
+  function updateChips(products) {
+    const total   = products.length;
+    const nostock = products.filter(p => Number(parsePayload(p.payload).stock ?? 0) === 0).length;
+    const low     = products.filter(p => { const s = Number(parsePayload(p.payload).stock ?? 0); return s > 0 && s <= 3; }).length;
+    const nosku   = products.filter(p => !(parsePayload(p.payload).sku || '').trim()).length;
+    V().setIfChanged($('chip-total'), total + ' producto' + (total !== 1 ? 's' : ''));
+    const ns = $('chip-nostock'), lo = $('chip-low'), nk = $('chip-nosku');
+    if (ns) { ns.style.display = nostock ? '' : 'none'; V().setIfChanged(ns, nostock + ' agotado' + (nostock !== 1 ? 's' : '')); }
+    if (lo) { lo.style.display = low     ? '' : 'none'; V().setIfChanged(lo, low     + ' bajo stock'); }
+    if (nk) { nk.style.display = nosku   ? '' : 'none'; V().setIfChanged(nk, nosku   + ' sin SKU'); }
+  }
+
+  // F3 — cambio de filtro activo
+  function setFilter(f) {
+    activeFilter = f;
+    document.querySelectorAll('.fbtn').forEach(b => b.classList.toggle('on', b.dataset.f === f));
+    refreshEntities();
+  }
+
+  // F1 — aplicar clase de vista (solo CSS, sin reconstruir DOM)
+  function applyViewMode() {
+    const g = $('grid');
+    if (g) g.classList.toggle('view-grid', viewMode === 'grid');
+    const vl = $('btn-view-list'), vg = $('btn-view-grid');
+    if (vl) vl.classList.toggle('active', viewMode === 'list');
+    if (vg) vg.classList.toggle('active', viewMode === 'grid');
   }
 
   /* ═══════════════════════════════════════════════════
@@ -260,9 +300,41 @@
 
   async function refreshEntities() {
     if (!session) return;
-    const products = await K().loadEntitiesByType(session.db, 'product');
-    const pendingMap = await K().listPending(session.db);
+    const allProducts = await K().loadEntitiesByType(session.db, 'product');
+    const pendingMap  = await K().listPending(session.db);
 
+    // F2 — chips siempre del conjunto completo
+    updateChips(allProducts);
+
+    // F3 — filtro activo
+    const FILTERS = {
+      all:     ()  => true,
+      nosku:   p   => !(parsePayload(p.payload).sku || '').trim(),
+      nostock: p   => Number(parsePayload(p.payload).stock ?? 0) === 0,
+      low:     p   => { const s = Number(parsePayload(p.payload).stock ?? 0); return s > 0 && s <= 3; },
+    };
+    let products = allProducts.filter(FILTERS[activeFilter] ?? FILTERS.all);
+
+    // F5 — búsqueda NFD sobre nombre y SKU
+    const q = nfd(searchQuery);
+    if (q) {
+      products = products.filter(p => {
+        const d = parsePayload(p.payload);
+        return nfd(d.nombre || d.name || '').includes(q) || nfd(d.sku || '').includes(q);
+      });
+    }
+
+    // F4 — ordenación
+    const SORTERS = {
+      'ts-desc':  (a, b) => (b.ts || 0) - (a.ts || 0),
+      'ts-asc':   (a, b) => (a.ts || 0) - (b.ts || 0),
+      'name-az':  (a, b) => { const da = parsePayload(a.payload), db = parsePayload(b.payload); return (da.nombre||da.name||'').localeCompare(db.nombre||db.name||'', 'es'); },
+      'name-za':  (a, b) => { const da = parsePayload(a.payload), db = parsePayload(b.payload); return (db.nombre||db.name||'').localeCompare(da.nombre||da.name||'', 'es'); },
+      'stk-desc': (a, b) => Number(parsePayload(b.payload).stock ?? 0) - Number(parsePayload(a.payload).stock ?? 0),
+    };
+    products = [...products].sort(SORTERS[activeSort] ?? SORTERS['ts-desc']);
+
+    // gridSig incluye el orden y el conjunto filtrado
     const gridSig = JSON.stringify(products.map(p => ({
       id: p.entityId,
       sh: p.stateHash,
@@ -500,6 +572,40 @@
     $('btn-close-add').addEventListener('click', () => $('add-bar').classList.remove('open'));
     $('btn-add-product').addEventListener('click', addProduct);
     $('btn-export').addEventListener('click', exportJSON);
+
+    // F1 — toggle vista lista/grilla
+    $('btn-view-list').addEventListener('click', () => {
+      viewMode = 'list';
+      localStorage.setItem('kobalt:view', 'list');
+      applyViewMode();
+    });
+    $('btn-view-grid').addEventListener('click', () => {
+      viewMode = 'grid';
+      localStorage.setItem('kobalt:view', 'grid');
+      applyViewMode();
+    });
+    applyViewMode();
+
+    // F3 — filtros rápidos
+    document.querySelectorAll('.fbtn').forEach(b =>
+      b.addEventListener('click', () => setFilter(b.dataset.f))
+    );
+    // marcar el activo inicial
+    document.querySelectorAll('.fbtn').forEach(b =>
+      b.classList.toggle('on', b.dataset.f === activeFilter)
+    );
+
+    // F4 — ordenación
+    $('sort-select').addEventListener('change', () => {
+      activeSort = $('sort-select').value;
+      refreshEntities();
+    });
+
+    // F5 — búsqueda mejorada
+    $('search-input').addEventListener('input', () => {
+      searchQuery = $('search-input').value;
+      refreshEntities();
+    });
   });
 
 })();

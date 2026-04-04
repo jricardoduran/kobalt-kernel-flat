@@ -119,6 +119,39 @@
     <button id="btn-close-add" class="btn" style="padding:6px 8px">✕</button>
   </div>
 
+  <div class="controls-bar">
+    <div class="search-wrap">
+      <span class="search-ico">⌕</span>
+      <input class="search-input" id="search-input" type="search" placeholder="Buscar nombre o SKU…" autocomplete="off">
+    </div>
+    <span style="flex:1"></span>
+    <select id="sort-select" class="sort-select">
+      <option value="ts-desc">Recientes</option>
+      <option value="ts-asc">Antiguos</option>
+      <option value="name-az">Nombre A→Z</option>
+      <option value="name-za">Nombre Z→A</option>
+      <option value="stk-desc">Mayor stock</option>
+    </select>
+    <div class="view-toggle">
+      <button id="btn-view-list" class="btn" title="Vista lista">☰</button>
+      <button id="btn-view-grid" class="btn" title="Vista grilla">⊞</button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <button class="fbtn on" data-f="all">TODOS</button>
+    <button class="fbtn" data-f="nosku">SIN SKU</button>
+    <button class="fbtn" data-f="nostock">SIN STOCK</button>
+    <button class="fbtn" data-f="low">STOCK≤3</button>
+  </div>
+
+  <div class="chips">
+    <span class="chip" id="chip-total">— productos</span>
+    <span class="chip chip-nostock" id="chip-nostock" style="display:none"></span>
+    <span class="chip chip-low" id="chip-low" style="display:none"></span>
+    <span class="chip chip-nosku" id="chip-nosku" style="display:none"></span>
+  </div>
+
   <div id="grid"></div>
   <div id="empty">Sin productos aún.<br>Usa + Producto para comenzar.</div>
 
