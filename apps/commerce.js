@@ -374,7 +374,22 @@
       const dotCls = pendingMap && pendingMap[p.entityId] ? 'p' : 's';
       return `<div class="card" data-eid="${esc(p.entityId)}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-          <div class="cname">${esc(d.nombre || d.name || '—')}</div>
+          <div class="cname-wrap" data-eid="${esc(p.entityId)}">
+            <div class="cname-view">
+              <span class="cname-text">${esc(d.nombre || d.name || '—')}</span>
+              <button class="cname-edit-btn" title="Editar nombre"
+                      data-role="edit-nombre" data-eid="${esc(p.entityId)}">✎</button>
+            </div>
+            <div class="cname-edit" style="display:none">
+              <input class="fi cname-input" type="text"
+                     data-role="nombre-input" data-eid="${esc(p.entityId)}"
+                     value="${esc(d.nombre || d.name || '')}">
+              <button class="cname-save-btn" data-role="nombre-save"
+                      data-eid="${esc(p.entityId)}" title="Guardar">✓</button>
+              <button class="cname-cancel-btn" data-role="nombre-cancel"
+                      data-eid="${esc(p.entityId)}" title="Cancelar">✕</button>
+            </div>
+          </div>
           <span class="sbadge ${cls}">${lbl} ${stk}</span>
         </div>
         <div class="fields">
@@ -409,6 +424,58 @@
     $('grid').querySelectorAll('[data-role="stock"]').forEach(inp =>
       inp.addEventListener('change', () => updateField(inp.dataset.eid, 'stock', Number(inp.value || 0)))
     );
+
+    // Edición de nombre — dos estados: vista ↔ edición
+    $('grid').querySelectorAll('[data-role="edit-nombre"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const wrap = btn.closest('.cname-wrap');
+        wrap.querySelector('.cname-view').style.display = 'none';
+        wrap.querySelector('.cname-edit').style.display = 'flex';
+        const inp = wrap.querySelector('.cname-input');
+        inp.focus();
+        inp.select();
+      });
+    });
+
+    $('grid').querySelectorAll('[data-role="nombre-save"]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const wrap    = btn.closest('.cname-wrap');
+        const inp     = wrap.querySelector('.cname-input');
+        const eid     = btn.dataset.eid;
+        const newName = inp.value.trim();
+        if (!newName) { V().toast('El nombre no puede estar vacío'); return; }
+        // Actualizar texto visible de inmediato — sin reconstruir el grid
+        wrap.querySelector('.cname-text').textContent = newName;
+        wrap.querySelector('.cname-view').style.display = '';
+        wrap.querySelector('.cname-edit').style.display = 'none';
+        // Persistir en kernel
+        await updateField(eid, 'nombre', newName);
+      });
+    });
+
+    $('grid').querySelectorAll('[data-role="nombre-cancel"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const wrap = btn.closest('.cname-wrap');
+        // Restaurar input al valor visible actual
+        wrap.querySelector('.cname-input').value =
+          wrap.querySelector('.cname-text').textContent;
+        wrap.querySelector('.cname-view').style.display = '';
+        wrap.querySelector('.cname-edit').style.display = 'none';
+      });
+    });
+
+    // Enter guarda, Escape cancela desde el input
+    $('grid').querySelectorAll('[data-role="nombre-input"]').forEach(inp => {
+      inp.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          inp.closest('.cname-wrap').querySelector('[data-role="nombre-save"]').click();
+        }
+        if (e.key === 'Escape') {
+          inp.closest('.cname-wrap').querySelector('[data-role="nombre-cancel"]').click();
+        }
+      });
+    });
   }
 
   async function addProduct() {
@@ -433,8 +500,13 @@
     const p = parsePayload(e.payload);
     p[field] = field === 'stock' ? Math.max(0, Number(value || 0)) : value;
     await K().saveEntityVersion(session, eid, p);
-    await refreshEntities();
-    doSync().catch(() => setBadge('badge-warn', 'PENDING'));
+    if (field === 'nombre') {
+      // Nombre ya actualizado en DOM — solo sync en background
+      doSync().catch(() => setBadge('badge-warn', 'PENDING'));
+    } else {
+      await refreshEntities();
+      doSync().catch(() => setBadge('badge-warn', 'PENDING'));
+    }
   }
 
   async function adjustStock(eid, delta) {

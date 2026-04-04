@@ -298,3 +298,23 @@ body{font-family:var(--font-body);background:var(--page-bg);color:var(--text-pri
 .chip-nosku{border-color:rgba(41,197,246,.2);color:var(--p-cyan);}
 #grid.view-grid .cmeta{font-size:.6rem;}
 @media(max-width:480px){.login-wrap{max-width:100%;padding:0 4px;}.page{padding:72px 12px 40px;}}
+
+/* ═══ Edición de nombre en dos pasos ═══ */
+.cname-wrap{display:flex;flex-direction:column;gap:4px;}
+#grid.view-list .cname-wrap{flex:1;min-width:0;}
+.cname-view{display:flex;align-items:center;gap:6px;}
+.cname-text{font-size:.82rem;font-weight:700;word-break:break-word;flex:1;}
+.cname-edit-btn{opacity:0;transition:opacity .15s;background:none;border:none;
+  color:var(--text-muted);cursor:pointer;font-size:.75rem;padding:2px 4px;
+  border-radius:3px;flex-shrink:0;line-height:1;}
+.cname-edit-btn:hover{color:var(--accent);}
+.card:hover .cname-edit-btn{opacity:1;}
+.cname-edit{display:flex;align-items:center;gap:4px;}
+.cname-input{flex:1;font-size:.82rem;font-weight:600;}
+.cname-save-btn,.cname-cancel-btn{background:none;border:none;cursor:pointer;
+  font-size:.8rem;padding:3px 6px;border-radius:3px;flex-shrink:0;
+  transition:background .12s;line-height:1;}
+.cname-save-btn{color:var(--ok);}
+.cname-cancel-btn{color:var(--err);}
+.cname-save-btn:hover{background:rgba(92,217,160,.12);}
+.cname-cancel-btn:hover{background:rgba(244,112,128,.12);}
