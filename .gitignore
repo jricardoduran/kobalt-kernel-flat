@@ -1,3 +1,4 @@
-.claude/
+.claude/*
+!.claude/skills/
 storages/*/services/*.json
 !storages/*/services/*.example.json
