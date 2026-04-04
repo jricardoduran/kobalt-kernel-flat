@@ -27,35 +27,6 @@
     return null;
   }
 
-  async function storeServiceKeys(session, rawServices, H_u_bytes) {
-    if (!rawServices || !rawServices.length) return;
-
-    const D = await session._derive(); 
-
-    for (const svc of rawServices) {
-      if (!svc.id || !svc.key_enc || !svc.url) continue;
-
-      try {
-        
-        const keyEncBytes = K().hexToBytes(svc.key_enc);
-        const serviceKey  = await K().decrypt(keyEncBytes, H_u_bytes); 
-
-        const keyEncD = await K().encrypt(serviceKey, D); 
-
-        await K().saveRaw(session.db, 'svc:' + svc.id, {
-          url:          svc.url,
-          fallback_url: svc.fallback_url || null,
-          key_enc:      K().bytesToHex(keyEncD),
-          label:        svc.label || svc.id,
-        });
-
-      } catch (err) {
-        console.warn('storeServiceKeys: error en servicio', svc.id, err);
-      }
-    }
-
-  }
-
   async function computeToken(session, serviceConfig) {
     const D          = await session._derive();                      
     const keyEncBytes = K().hexToBytes(serviceConfig.key_enc);
@@ -243,7 +214,6 @@
 
   global.KobaltConnectors = {
     load,
-    storeServiceKeys,
     buildServices,
     makeStorage,
     makeStorages,
