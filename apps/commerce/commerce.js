@@ -8,6 +8,14 @@
   const AUTH_URL    = './auth.php';
   const STORAGE_URL = './storages/api.php';
 
+  // Actualiza botones de cabecera según pestaña activa.
+  // Scope de módulo: accesible desde mount() y navigateTo().
+  function updateTabActions(tabId) {
+    document.querySelectorAll('.cm-actions [data-tab-show]').forEach(btn => {
+      btn.style.display = btn.dataset.tabShow === tabId ? '' : 'none';
+    });
+  }
+
   // ── Estado de módulo ────────────────────────────────────────────
   let session         = null;
   let syncHandle      = null;
@@ -34,8 +42,11 @@
         <button class="app-tab" data-tab="historial">📊 Historial</button>
       </div>
       <div class="cm-actions">
-        <button id="btn-export" class="btn btn-sm">⬇ JSON</button>
-        <button id="btn-toggle-add" class="btn btn-primary btn-sm">✦ Agregar Producto</button>
+        <!-- inventario -->
+        <button id="btn-export"     class="btn btn-sm"            data-tab-show="inventario">⬇ JSON</button>
+        <button id="btn-toggle-add" class="btn btn-primary btn-sm" data-tab-show="inventario">✦ Agregar Producto</button>
+        <!-- pos — (vacío por ahora, se añadirá acción útil) -->
+        <!-- historial — (vacío por ahora, se añadirá acción útil) -->
       </div>
     </div>
 
@@ -1010,10 +1021,14 @@
         btn.classList.add('on');
         const tab = $('tab-' + btn.dataset.tab);
         if (tab) { tab.style.display = 'block'; tab.classList.add('on'); }
+        updateTabActions(btn.dataset.tab);
         if (btn.dataset.tab === 'pos')       refreshPOS();
         if (btn.dataset.tab === 'historial') refreshHistorial();
       });
     });
+
+    // Estado inicial: mostrar acciones de inventario
+    updateTabActions('inventario');
   }
 
   /* ═══════════════════════════════════════════════════
@@ -1088,6 +1103,7 @@
       const tab = $('tab-' + viewId);
       if (btn) btn.classList.add('on');
       if (tab) { tab.style.display = 'block'; tab.classList.add('on'); }
+      updateTabActions(viewId);
       if (viewId === 'pos')       refreshPOS();
       if (viewId === 'historial') refreshHistorial();
     },
