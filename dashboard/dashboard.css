@@ -1,16 +1,32 @@
 /* ═══ DASHBOARD LAYOUT ═══
  * Patrón: sidebar árbol colapsable + topbar fija + contenido
  * Clase: I visual — no conoce el kernel
+ *
+ * REGLA: Cero !important. Especificidad via selectores compuestos.
+ *        Cero colores hardcodeados. Todo via tokens de kobalt.css.
+ *        Sidebar: clamp() — nunca px fijos.
  */
 
 /* ── Variables de layout ── */
 :root {
-  --sidebar-w:      200px;
+  --sidebar-w:      clamp(180px, 16%, 240px);
   --sidebar-w-col:  48px;
   --topbar-h:       48px;
-  --sidebar-border: var(--sidebar-border, rgba(41,197,246,.08));
   --app-item-r:     var(--r-sm);
   --view-indent:    20px;
+  /* sidebar gradient border — colores de borde de identidad */
+  --sidebar-grad-border: linear-gradient(180deg,
+    rgba(41,197,246,.12),
+    rgba(77,106,247,.08) 50%,
+    transparent
+  );
+}
+[data-theme="light"] {
+  --sidebar-grad-border: linear-gradient(180deg,
+    rgba(123,79,224,.12),
+    rgba(77,106,247,.06) 50%,
+    transparent
+  );
 }
 
 /* ── Estructura base ── */
@@ -47,20 +63,35 @@
   opacity: .65;
   pointer-events: none;
 }
+
+/* ── Botón menú móvil ── */
+#db-mobile-menu {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px;
+  margin-right: 4px;
+  border-radius: var(--r-xs);
+  transition: color var(--duration-fast);
+}
+#db-mobile-menu:hover { color: var(--text-primary); }
+
+/* ── Logo ── */
 #db-logo {
   display: flex;
   align-items: center;
   gap: 7px;
   flex-shrink: 0;
 }
-#db-logo-icon {
-  flex-shrink: 0;
-}
+#db-logo-icon { flex-shrink: 0; }
 #db-logo-text {
   font-size: .92rem;
   font-weight: 800;
   letter-spacing: -.04em;
-  color: #FFFFFF;
+  color: var(--color-white);
 }
 [data-theme="light"] #db-logo-text {
   background: linear-gradient(135deg, #2C2838 0%, #7A7090 100%);
@@ -68,6 +99,8 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* ── Breadcrumb ── */
 #db-breadcrumb {
   font-size: .75rem;
   color: var(--text-muted);
@@ -80,11 +113,26 @@
   color: var(--text-primary);
   font-weight: 600;
 }
+
+/* ── Zona derecha del topbar ── */
 #db-topbar-right {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
+}
+
+/* Elementos ocultos por defecto — JS los muestra */
+#sync-badge,
+#db-sync-btn,
+#btn-accounts,
+#acc-badge,
+#thIconL {
+  display: none;
+}
+#db-sync-btn,
+#btn-accounts {
+  font-size: .7rem;
 }
 
 /* ── Badge de conectividad ── */
@@ -94,25 +142,21 @@
   font-weight: 700;
   letter-spacing: .08em;
   padding: 3px 9px;
-  border-radius: 20px;
+  border-radius: var(--r-pill);
   border: 1px solid;
-  transition: all .3s ease;
+  transition: all var(--duration-moderate);
   flex-shrink: 0;
 }
 .db-connectivity-badge.online {
   color: var(--ok);
-  border-color: rgba(92,217,160,.25);
-  background: rgba(92,217,160,.08);
+  border-color: var(--ok-border);
+  background: var(--ok-bg);
 }
 .db-connectivity-badge.offline {
   color: var(--warn);
-  border-color: rgba(240,194,78,.25);
-  background: rgba(240,194,78,.08);
+  border-color: var(--warn-border);
+  background: var(--warn-bg);
   animation: pulse-warn 2s ease-in-out infinite;
-}
-@keyframes pulse-warn {
-  0%,100% { opacity: 1; }
-  50%      { opacity: .55; }
 }
 
 /* ── Stats chips en topbar ── */
@@ -140,11 +184,11 @@
   text-transform: uppercase;
   letter-spacing: .5px;
 }
-.db-stat-cyan  { color: var(--p-cyan);    border-color: rgba(41,197,246,.22);  background: rgba(41,197,246,.07);  }
-.db-stat-blue  { color: var(--p-blue);    border-color: rgba(77,106,247,.22);  background: rgba(77,106,247,.07);  }
-.db-stat-ok    { color: var(--ok);        border-color: var(--badge-ok-border);  background: var(--badge-ok-bg);  }
-.db-stat-warn  { color: var(--warn);      border-color: var(--badge-warn-border); background: var(--badge-warn-bg); }
-.db-stat-err   { color: var(--err);       border-color: var(--badge-err-border);  background: var(--badge-err-bg);  }
+.db-stat-cyan  { color: var(--p-cyan);   border-color: var(--cyan-border);       background: var(--cyan-bg); }
+.db-stat-blue  { color: var(--p-blue);   border-color: rgba(77,106,247,.22);     background: rgba(77,106,247,.07); }
+.db-stat-ok    { color: var(--ok);       border-color: var(--badge-ok-border);   background: var(--badge-ok-bg); }
+.db-stat-warn  { color: var(--warn);     border-color: var(--badge-warn-border); background: var(--badge-warn-bg); }
+.db-stat-err   { color: var(--err);      border-color: var(--badge-err-border);  background: var(--badge-err-bg); }
 
 /* ── Cuerpo: sidebar + contenido ── */
 #db-body {
@@ -160,17 +204,12 @@
   flex-shrink: 0;
   border-right: 1px solid transparent;
   background:
-    linear-gradient(var(--sidebar-bg, #090c12), var(--sidebar-bg, #090c12))
-    padding-box,
-    linear-gradient(180deg,
-      rgba(41,197,246,.12),
-      rgba(77,106,247,.08) 50%,
-      transparent
-    ) border-box;
+    linear-gradient(var(--sidebar-bg), var(--sidebar-bg)) padding-box,
+    var(--sidebar-grad-border) border-box;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  transition: width .22s cubic-bezier(.4,0,.2,1);
+  transition: width var(--duration-moderate) var(--ease-standard);
   z-index: 50;
 }
 #db-sidebar.collapsed { width: var(--sidebar-w-col); }
@@ -185,15 +224,15 @@
 }
 #db-collapse-btn button {
   background: none;
-  border: 1px solid var(--sidebar-border, var(--border-subtle));
+  border: 1px solid var(--sidebar-border);
   color: var(--text-muted);
   cursor: pointer;
   padding: 0;
   width: 26px;
   height: 26px;
-  border-radius: 50%;
+  border-radius: var(--r-full);
   font-size: .85rem;
-  transition: all .2s;
+  transition: var(--transition-btn);
   line-height: 1;
   display: flex;
   align-items: center;
@@ -219,20 +258,18 @@
 }
 
 /* ── Sección (nivel 1, acordeón) ── */
-.db-section {
-  display: flex;
-  flex-direction: column;
-}
-.db-section-head {
-  /* hereda .db-nav-item */
-  font-size: .66rem !important;
-  font-weight: 700 !important;
+.db-section { display: flex; flex-direction: column; }
+
+/* Especificidad .db-section .db-section-head.db-nav-item > .db-nav-item — sin !important */
+.db-section .db-section-head.db-nav-item {
+  font-size: .66rem;
+  font-weight: 700;
   letter-spacing: .06em;
   text-transform: uppercase;
-  color: var(--text-muted) !important;
+  color: var(--text-muted);
 }
-.db-section-head:hover {
-  color: var(--text-secondary) !important;
+.db-section .db-section-head.db-nav-item:hover {
+  color: var(--text-secondary);
 }
 .db-section-head .db-nav-label {
   font-size: .6rem;
@@ -251,42 +288,26 @@
   gap: 1px;
   padding-bottom: 4px;
 }
-.db-section-body.open {
-  display: flex;
-}
-/* Colapsar secciones cuando sidebar está colapsado */
-#db-sidebar.collapsed .db-section-body {
-  display: none !important;
-}
+.db-section-body.open { display: flex; }
+/* Colapsado: ocultar secciones — sin !important via selector de alta especificidad */
+#db-sidebar.collapsed .db-section-body { display: none; }
 
 /* ── Chevron de sección ── */
 .db-chevron {
   font-size: .8rem;
   color: var(--text-muted);
-  transition: transform .2s, opacity .15s;
+  transition: transform var(--duration-base), opacity var(--duration-fast);
   opacity: .55;
   flex-shrink: 0;
   margin-left: auto;
   line-height: 1;
   pointer-events: none;
 }
-.db-chevron.open {
-  transform: rotate(90deg);
-  opacity: .9;
-}
-#db-sidebar.collapsed .db-chevron {
-  display: none;
-}
+.db-chevron.open { transform: rotate(90deg); opacity: .9; }
+#db-sidebar.collapsed .db-chevron { display: none; }
 
 /* ── Grupo de app (nivel 2) ── */
-.db-app-group {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.db-app-head {
-  /* hereda .db-nav-item */
-}
+.db-app-group { display: flex; flex-direction: column; gap: 1px; }
 
 /* ── Hijos de app (vistas, nivel 3) ── */
 .db-app-children {
@@ -295,36 +316,40 @@
   gap: 1px;
   padding-left: var(--view-indent);
 }
-.db-app-children.active {
-  display: flex;
-}
+.db-app-children.active { display: flex; }
 
-/* ── Vistas (nivel 3) ── */
-.db-nav-view {
-  /* hereda .db-nav-item */
-  font-size: .7rem !important;
-  color: var(--text-muted) !important;
-  min-height: 28px !important;
-  padding: 5px 8px !important;
+/* ── Vistas nivel 3 — especificidad .db-app-children .db-nav-view.db-nav-item ── */
+.db-app-children .db-nav-view.db-nav-item {
+  font-size: .7rem;
+  color: var(--text-muted);
+  min-height: 28px;
+  padding: 5px 8px;
 }
-.db-nav-view:hover {
-  color: var(--text-secondary) !important;
+.db-app-children .db-nav-view.db-nav-item:hover {
+  color: var(--text-secondary);
 }
-.db-nav-view.active {
-  color: var(--accent) !important;
-  background: var(--accent-dim) !important;
+.db-app-children .db-nav-view.db-nav-item.active {
+  color: var(--accent);
+  background: var(--accent-dim);
 }
 .db-view-dot {
-  font-size: .75rem !important;
+  font-size: .75rem;
   color: var(--text-muted);
   opacity: .5;
 }
-.db-nav-view.active .db-view-dot {
+.db-app-children .db-nav-view.db-nav-item.active .db-view-dot {
   color: var(--accent);
   opacity: 1;
 }
 
-/* ── Items de navegación base ── */
+/* ══════════════════════════════════════════════════════
+   NAV ITEMS — hover con slide-in animado
+   ══════════════════════════════════════════════════════
+   Arquitectura de pseudo-elementos:
+   ::before → background slide-in (hover FX)
+   ::after  → indicador izquierdo (hover sutil + active destacado)
+   El contenido (icon, label) vive en z-index:1 encima de ::before.
+   ══════════════════════════════════════════════════════ */
 .db-nav-item {
   display: flex;
   align-items: center;
@@ -340,29 +365,68 @@
   font-family: var(--font-mono);
   font-size: .72rem;
   font-weight: 500;
-  transition: all .12s;
+  transition: color var(--duration-instant);
   white-space: nowrap;
   overflow: hidden;
   min-height: 32px;
   position: relative;
 }
-.db-nav-item:hover {
-  background: var(--sidebar-item-hover, var(--surface-overlay));
-  color: var(--text-primary);
+
+/* slide-in background via ::before */
+.db-nav-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--sidebar-item-hover);
+  transform: translateX(-100%);
+  transition: transform var(--duration-instant) var(--ease-out);
+  pointer-events: none;
+  z-index: 0;
 }
+.db-nav-item:hover::before { transform: translateX(0); }
+
+/* indicador izquierdo via ::after */
+.db-nav-item::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 20%; bottom: 20%;
+  width: 2.5px;
+  border-radius: 0 2px 2px 0;
+  background: var(--grad-main);
+  transform: scaleY(0);
+  transition: transform var(--duration-fast) var(--ease-standard);
+  pointer-events: none;
+  z-index: 1;
+}
+.db-nav-item:hover::after {
+  transform: scaleY(1);
+  opacity: .45;
+}
+.db-nav-item.active::after {
+  transform: scaleY(1);
+  opacity: 1;
+}
+
+/* Estado activo — background, sin !important */
 .db-nav-item.active {
-  background: var(--sidebar-item-active-bg, var(--accent-dim));
+  background: var(--sidebar-item-active-bg);
   color: var(--accent);
   font-weight: 600;
 }
-.db-nav-item.active::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 20%; bottom: 20%;
-  width: 2px;
-  border-radius: 2px;
-  background: var(--grad-main);
+.db-nav-item.active::before { transform: translateX(0); background: var(--sidebar-item-active-bg); }
+
+.db-nav-item:hover { color: var(--text-primary); }
+
+/* Todo el contenido del item encima del slide-in ::before */
+.db-nav-icon,
+.db-nav-label,
+.db-chevron {
+  position: relative;
+  z-index: 1;
 }
+
 .db-nav-icon {
   font-size: .9rem;
   flex-shrink: 0;
@@ -375,7 +439,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   opacity: 1;
-  transition: opacity .15s;
+  transition: opacity var(--duration-fast);
 }
 #db-sidebar.collapsed .db-nav-label {
   opacity: 0;
@@ -399,12 +463,18 @@
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: opacity .12s;
+  transition: opacity var(--duration-instant);
   z-index: 200;
   box-shadow: var(--shadow-md);
+  /* reset indicator styles */
+  top: auto; bottom: auto;
+  width: auto; height: auto;
+  transform: none;
+  background-origin: initial;
 }
 #db-sidebar.collapsed .db-nav-item:hover::after {
   opacity: 1;
+  transform: none; /* tooltip, no indicador de barra */
 }
 
 /* ── Pie de sidebar ── */
@@ -412,6 +482,22 @@
   padding: 6px;
   border-top: 1px solid var(--border-subtle);
   flex-shrink: 0;
+}
+
+/* Botón salir — estilo danger sutil, sin !important */
+#db-logout-foot.db-nav-item {
+  color: var(--err);
+  opacity: .7;
+}
+#db-logout-foot.db-nav-item::before {
+  background: var(--err-bg);
+}
+#db-logout-foot.db-nav-item:hover {
+  color: var(--err);
+  opacity: 1;
+}
+#db-logout-foot.db-nav-item::after {
+  background: var(--err);
 }
 
 /* ── Contenido principal ── */
@@ -432,11 +518,9 @@
   min-height: 100%;
   padding: 28px 32px;
   box-sizing: border-box;
-  animation: db-fadein .16s ease both;
+  animation: db-fadein var(--duration-base) ease both;
 }
-.db-app-container.active {
-  display: block;
-}
+.db-app-container.active { display: block; }
 @keyframes db-fadein {
   from { opacity: 0; transform: translateY(5px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -455,32 +539,28 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform .22s ease;
+  transition: transform var(--duration-base) ease;
 }
-.card-thumb:hover img {
-  transform: scale(1.04);
-}
+.card-thumb:hover img { transform: scale(1.04); }
 .card-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,.52);
+  background: var(--color-scrim);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity .18s;
+  transition: opacity var(--duration-base);
 }
-.card-thumb:hover .card-overlay {
-  opacity: 1;
-}
+.card-thumb:hover .card-overlay { opacity: 1; }
 .card-overlay-label {
   font-family: var(--font-mono);
   font-size: .66rem;
   font-weight: 700;
   letter-spacing: .1em;
   color: var(--ok);
-  background: rgba(92,217,160,.12);
-  border: 1px solid rgba(92,217,160,.35);
+  background: var(--ok-bg);
+  border: 1px solid var(--ok-border);
   padding: 4px 10px;
   border-radius: 4px;
 }
@@ -492,31 +572,6 @@
   color: var(--p-cyan);
   opacity: .7;
   letter-spacing: .3px;
-}
-
-/* ── Responsive: sidebar como overlay en móvil ── */
-@media (max-width: 768px) {
-  #db-sidebar {
-    position: absolute;
-    top: 0; left: 0; bottom: 0;
-    z-index: 150;
-    transform: translateX(-100%);
-    transition: transform .25s cubic-bezier(.4,0,.2,1),
-                width .22s cubic-bezier(.4,0,.2,1);
-    box-shadow: var(--shadow-drawer);
-  }
-  #db-sidebar.mobile-open {
-    transform: translateX(0);
-  }
-  #db-sidebar.collapsed {
-    width: var(--sidebar-w);
-  }
-  #db-content {
-    padding-top: 0;
-  }
-  .db-app-container {
-    padding: 14px 16px;
-  }
 }
 
 /* ── Estado vacío de app ── */
@@ -532,11 +587,21 @@
 }
 .db-app-empty-icon { font-size: 2.2rem; opacity: .35; }
 
-/* ── Botón de salir — estilo peligro sutil ── */
-#db-logout-foot {
-  color: rgba(248,113,113,.6);
-}
-#db-logout-foot:hover {
-  color: var(--err) !important;
-  background: rgba(248,113,113,.07) !important;
+/* ── Responsive: sidebar como overlay en móvil ── */
+@media (max-width: 768px) {
+  #db-mobile-menu { display: flex; }
+
+  #db-sidebar {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    z-index: 150;
+    transform: translateX(-100%);
+    transition: transform var(--duration-moderate) var(--ease-standard),
+                width var(--duration-moderate) var(--ease-standard);
+    box-shadow: var(--shadow-drawer);
+  }
+  #db-sidebar.mobile-open { transform: translateX(0); }
+  #db-sidebar.collapsed { width: var(--sidebar-w); }
+
+  .db-app-container { padding: 14px 16px; }
 }
