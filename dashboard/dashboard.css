@@ -87,6 +87,34 @@
   flex-shrink: 0;
 }
 
+/* ── Badge de conectividad ── */
+.db-connectivity-badge {
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1px solid;
+  transition: all .3s ease;
+  flex-shrink: 0;
+}
+.db-connectivity-badge.online {
+  color: var(--ok);
+  border-color: rgba(92,217,160,.25);
+  background: rgba(92,217,160,.08);
+}
+.db-connectivity-badge.offline {
+  color: var(--warn);
+  border-color: rgba(240,194,78,.25);
+  background: rgba(240,194,78,.08);
+  animation: pulse-warn 2s ease-in-out infinite;
+}
+@keyframes pulse-warn {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .55; }
+}
+
 /* ── Stats chips en topbar ── */
 #db-stats-bar {
   display: flex;

@@ -110,6 +110,17 @@
           mount:   null,
           unmount: null,
         },
+        {
+          id:      'config',
+          label:   'Configuración',
+          icon:    '🎨',
+          type:    'app',
+          desc:    'Apariencia y ajustes del dashboard',
+          script:  null,
+          css:     null,
+          mount:   null,
+          unmount: null,
+        },
       ],
     },
   ];
@@ -123,6 +134,67 @@
   let _loadedScripts = new Set();
 
   const $ = id => document.getElementById(id);
+
+  /* ═══ CONECTIVIDAD — motor de detección ═══
+   * Clase: I (infraestructura visual) — no toca kernel
+   * Fuente: navigator.onLine + eventos online/offline
+   * Precisión: detecta red activa, no WAN real.
+   * Para tema adaptativo es suficiente.
+   *
+   * Modos:
+   *   'stable'  → tema fijo, red no influye
+   *   'auto-lc' → online=light, offline=dark  (Ligth cuando Conectado)
+   *   'auto-dc' → online=dark,  offline=light (Dark cuando Conectado)
+   */
+
+  const CONNECTIVITY_KEY = 'kobalt:connectivity:mode';
+  const THEME_KEY        = 'kobalt:theme';
+
+  let _connectivityMode = localStorage.getItem(CONNECTIVITY_KEY) || 'auto-lc';
+
+  function isOnline() { return navigator.onLine; }
+
+  function applyAdaptiveTheme() {
+    if (_connectivityMode === 'stable') return;
+    const theme = _connectivityMode === 'auto-lc'
+      ? (isOnline() ? 'light' : 'dark')
+      : (isOnline() ? 'dark'  : 'light');
+    applyThemeGlobal(theme);
+  }
+
+  function applyThemeGlobal(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.getElementById('dashboard')?.setAttribute('data-theme', theme);
+    localStorage.setItem(THEME_KEY, theme);
+    const iconD = $('thIconD');
+    const iconL = $('thIconL');
+    if (iconD) iconD.style.display = theme === 'dark'  ? '' : 'none';
+    if (iconL) iconL.style.display = theme === 'light' ? '' : 'none';
+  }
+
+  function setConnectivityMode(mode) {
+    _connectivityMode = mode;
+    localStorage.setItem(CONNECTIVITY_KEY, mode);
+    applyAdaptiveTheme();
+  }
+
+  function getConnectivityMode() { return _connectivityMode; }
+
+  window.addEventListener('online',  () => {
+    applyAdaptiveTheme();
+    updateConnectivityIndicator(true);
+  });
+  window.addEventListener('offline', () => {
+    applyAdaptiveTheme();
+    updateConnectivityIndicator(false);
+  });
+
+  function updateConnectivityIndicator(online) {
+    const el = $('db-connectivity');
+    if (!el) return;
+    el.textContent = online ? '● ONLINE' : '○ LOCAL';
+    el.className   = 'db-connectivity-badge ' + (online ? 'online' : 'offline');
+  }
 
   /* ── Utilidades de árbol ──────────────────────────────────────── */
 
@@ -359,9 +431,13 @@
       }
     }
 
-    // App especial inline: sesión
+    // Apps especiales inline
     if (appNode.id === 'sesion') {
       renderSesionApp(container);
+      return;
+    }
+    if (appNode.id === 'config') {
+      renderAparienciaConfig(container);
       return;
     }
 
@@ -450,6 +526,131 @@
     $('db-logout-btn')?.addEventListener('click', logout);
   }
 
+  /* ── App inline: Configuración / Apariencia ──────────────────── */
+
+  function renderAparienciaConfig(container) {
+    const mode   = getConnectivityMode();
+    const online = isOnline();
+    const curTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+
+    container.innerHTML = `
+      <div style="max-width:560px">
+
+        <div style="margin-bottom:28px">
+          <div style="font-size:1.3rem;font-weight:800;letter-spacing:-.03em;
+                      background:var(--grad-main);-webkit-background-clip:text;
+                      -webkit-text-fill-color:transparent;background-clip:text;
+                      margin-bottom:4px">
+            Apariencia
+          </div>
+          <div style="font-size:.78rem;font-family:var(--font-mono);
+                      color:var(--text-muted)">
+            Personalización visual del dashboard
+          </div>
+        </div>
+
+        <!-- Estado de red -->
+        <div class="block" style="margin-bottom:16px">
+          <div class="block-head">
+            <div class="block-icon">📡</div>
+            <div class="block-title">Estado de conectividad</div>
+            <span class="db-connectivity-badge ${online ? 'online' : 'offline'}">
+              ${online ? '● ONLINE' : '○ LOCAL'}
+            </span>
+          </div>
+          <div class="block-body" style="font-size:.8rem;color:var(--text-muted);line-height:1.7">
+            Detectado via <code style="font-family:var(--font-mono);font-size:.75rem;
+            color:var(--p-cyan)">navigator.onLine</code>.
+            El sistema escucha eventos en tiempo real —
+            el tema cambia automáticamente cuando cambia la conexión.
+          </div>
+        </div>
+
+        <!-- Modo de tema adaptativo -->
+        <div class="block" style="margin-bottom:16px">
+          <div class="block-head">
+            <div class="block-icon">🎨</div>
+            <div class="block-title">Modo de tema adaptativo</div>
+          </div>
+          <div class="block-body">
+            ${[
+              ['auto-lc', '☀ Online claro · ◑ Offline oscuro',
+               'Cuando estás conectado, tema claro. Cuando pierdes la conexión, oscuro. Ideal para entornos de trabajo diurno.'],
+              ['auto-dc', '◑ Online oscuro · ☀ Offline claro',
+               'Modo oscuro cuando estás activo en red, claro cuando trabajas sin conexión.'],
+              ['stable',  '◈ Siempre estable',
+               'El tema no cambia con la conectividad. Usa el selector manual de abajo.'],
+            ].map(([val, label, desc]) => `
+              <label style="display:flex;align-items:flex-start;gap:12px;
+                            padding:13px 14px;margin-bottom:8px;border-radius:var(--r-sm);
+                            cursor:pointer;
+                            border:1px solid ${mode === val ? 'var(--accent)' : 'var(--border-default)'};
+                            background:${mode === val ? 'var(--accent-dim)' : 'var(--surface-overlay)'};
+                            transition:all .15s">
+                <input type="radio" name="connectivity-mode" value="${val}"
+                       ${mode === val ? 'checked' : ''}
+                       style="margin-top:3px;accent-color:var(--accent)">
+                <div>
+                  <div style="font-size:.84rem;font-weight:600;margin-bottom:3px">${label}</div>
+                  <div style="font-size:.73rem;color:var(--text-muted);line-height:1.5">${desc}</div>
+                </div>
+              </label>`).join('')}
+          </div>
+        </div>
+
+        <!-- Selector manual — solo en modo stable -->
+        <div class="block" id="cfg-manual-theme"
+             style="margin-bottom:16px;display:${mode === 'stable' ? 'block' : 'none'}">
+          <div class="block-head">
+            <div class="block-icon">☾</div>
+            <div class="block-title">Tema manual</div>
+          </div>
+          <div class="block-body">
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-secondary" id="cfg-set-dark"
+                      style="${curTheme === 'dark' ? 'border-color:var(--accent);color:var(--accent)' : ''}">
+                ◑ Oscuro
+              </button>
+              <button class="btn btn-secondary" id="cfg-set-light"
+                      style="${curTheme === 'light' ? 'border-color:var(--accent);color:var(--accent)' : ''}">
+                ☀ Claro
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-info">
+          <span class="alert-icon">◈</span>
+          <div class="alert-body">
+            <div class="alert-title">Configuración persistente</div>
+            <div class="alert-desc">
+              El modo seleccionado se guarda en localStorage
+              y se aplica automáticamente en cada sesión.
+            </div>
+          </div>
+        </div>
+
+      </div>`;
+
+    // Radio buttons — cambiar modo
+    container.querySelectorAll('[name="connectivity-mode"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        setConnectivityMode(radio.value);
+        renderAparienciaConfig(container);
+      });
+    });
+
+    // Botones de tema manual
+    container.querySelector('#cfg-set-dark')?.addEventListener('click', () => {
+      applyThemeGlobal('dark');
+      renderAparienciaConfig(container);
+    });
+    container.querySelector('#cfg-set-light')?.addEventListener('click', () => {
+      applyThemeGlobal('light');
+      renderAparienciaConfig(container);
+    });
+  }
+
   /* ── Toggle sidebar ───────────────────────────────────────────── */
 
   function toggleSidebar() {
@@ -506,10 +707,12 @@
       const db = $('dashboard');
       db.classList.add('visible');
 
-      // Propagar tema activo al elemento #dashboard
-      // (aunque hereda de <html>, esto permite selectores #dashboard[data-theme])
-      const theme = localStorage.getItem('kobalt:theme') || 'dark';
-      db.setAttribute('data-theme', theme);
+      // Aplicar tema — adaptativo o guardado
+      applyAdaptiveTheme();
+      // Si stable, aplicar el guardado
+      if (_connectivityMode === 'stable') {
+        applyThemeGlobal(localStorage.getItem(THEME_KEY) || 'dark');
+      }
 
       // Restaurar estado de sidebar
       _collapsed = localStorage.getItem('kobalt:sidebar:collapsed') === '1';
@@ -531,11 +734,17 @@
     logout,
     navigateTo,
     updateStats,
+    isOnline,
+    getConnectivityMode,
+    setConnectivityMode,
+    applyThemeGlobal,
   };
 
   /* ── Inicialización del DOM ───────────────────────────────────── */
 
   document.addEventListener('DOMContentLoaded', () => {
+    updateConnectivityIndicator(isOnline());
+
     $('db-collapse-btn-el')?.addEventListener('click', toggleSidebar);
 
     $('db-logout-foot')?.addEventListener('click', logout);

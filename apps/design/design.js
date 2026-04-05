@@ -280,6 +280,42 @@
             </div>`).join('')}
         </div>
       </div>
+
+      <div class="section-label">⬡ Ejemplo real — Tema adaptativo por conectividad</div>
+      <div class="block" id="ds-connectivity-block">
+        <div class="block-head">
+          <div class="block-icon">📡</div>
+          <div class="block-title">Tema adaptativo</div>
+          <span class="badge ${navigator.onLine ? 'badge-ok' : 'badge-warn'}" style="margin-left:auto">
+            ${navigator.onLine ? '● ONLINE' : '○ LOCAL'}
+          </span>
+        </div>
+        <div class="block-body">
+          <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:14px;line-height:1.6">
+            Este toggle modifica <strong style="color:var(--text-primary)">KobaltDashboard</strong>
+            en tiempo real. El tema cambia automáticamente al conectar / desconectar la red.
+          </div>
+          ${[
+            ['auto-lc', '☀ Online claro · ◑ Offline oscuro'],
+            ['auto-dc', '◑ Online oscuro · ☀ Offline claro'],
+            ['stable',  '◈ Tema fijo — sin adaptación'],
+          ].map(([val, label]) => {
+            const cur = globalThis.KobaltDashboard?.getConnectivityMode?.() || 'auto-lc';
+            return `
+            <div class="toggle-row" style="margin-bottom:8px">
+              <div class="toggle-info">
+                <div class="toggle-name" style="font-size:.82rem">${label}</div>
+              </div>
+              <label class="toggle" style="cursor:pointer">
+                <input type="radio" name="ds-conn-mode" value="${val}"
+                       ${cur === val ? 'checked' : ''}
+                       style="display:none">
+                <span class="toggle-slider" style="${cur === val ? 'background:var(--accent)' : ''}"></span>
+              </label>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
     `,
 
     feedback: () => `
@@ -432,6 +468,14 @@
     container.querySelectorAll('.tab-btn[data-view]').forEach(btn => {
       btn.addEventListener('click', () => {
         _currentView = btn.dataset.view;
+        render(containerId, _currentView);
+      });
+    });
+
+    // Listeners del bloque de conectividad (solo en vista formularios)
+    container.querySelectorAll('[name="ds-conn-mode"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        globalThis.KobaltDashboard?.setConnectivityMode?.(radio.value);
         render(containerId, _currentView);
       });
     });

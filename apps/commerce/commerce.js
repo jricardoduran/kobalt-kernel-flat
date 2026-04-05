@@ -1101,7 +1101,16 @@
     // Theme
     applyTheme(localStorage.getItem('kobalt:theme') || 'dark');
     $('btnTheme')?.addEventListener('click', () => {
-      applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+      if (globalThis.KobaltDashboard?.getConnectivityMode?.() !== 'stable') {
+        V()?.toast('Tema adaptativo activo — configura en Sistema → Configuración');
+        return;
+      }
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      if (globalThis.KobaltDashboard?.applyThemeGlobal) {
+        globalThis.KobaltDashboard.applyThemeGlobal(next);
+      } else {
+        applyTheme(next);
+      }
     });
 
     // Auth
