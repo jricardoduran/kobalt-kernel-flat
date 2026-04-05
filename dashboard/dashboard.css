@@ -48,14 +48,25 @@
   pointer-events: none;
 }
 #db-logo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+}
+#db-logo-icon {
+  flex-shrink: 0;
+}
+#db-logo-text {
   font-size: .92rem;
   font-weight: 800;
   letter-spacing: -.04em;
-  background: var(--grad-main);
+  color: #FFFFFF;
+}
+[data-theme="light"] #db-logo-text {
+  background: linear-gradient(135deg, #2C2838 0%, #7A7090 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  flex-shrink: 0;
 }
 #db-breadcrumb {
   font-size: .75rem;
