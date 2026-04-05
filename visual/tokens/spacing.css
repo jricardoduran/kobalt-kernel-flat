@@ -1,0 +1,60 @@
+/*
+ * tokens/spacing.css — Escala de espaciado y radios Kobalt
+ *
+ * REGLA: Base 4px. Todo padding, gap, margin y border-radius
+ *        debe usar un token de este archivo.
+ *        Valores no-múltiplo-de-4 solo en --r-xs (compromiso visual).
+ */
+
+:root {
+
+  /* ── Escala de espaciado (base 4px) ───────────────────── */
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-7:  28px;
+  --space-8:  32px;
+  --space-9:  36px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+  --space-18: 72px;
+
+  /* ── Aliases semánticos de espaciado ─────────────────── */
+  --gap-xs:    var(--space-1);    /* 4px  — gaps muy ajustados  */
+  --gap-sm:    var(--space-2);    /* 8px  — gaps compactos      */
+  --gap-md:    var(--space-3);    /* 12px — gaps estándar       */
+  --gap-lg:    var(--space-4);    /* 16px — gaps holgados       */
+  --gap-xl:    var(--space-6);    /* 24px — separaciones mayores*/
+
+  --pad-xs:    var(--space-2);    /* 8px  — padding compacto    */
+  --pad-sm:    var(--space-3);    /* 12px — padding pequeño     */
+  --pad-md:    var(--space-4);    /* 16px — padding estándar    */
+  --pad-lg:    var(--space-5);    /* 20px — padding holgado     */
+  --pad-xl:    var(--space-6);    /* 24px — padding grande      */
+
+  /* ── Border radii ─────────────────────────────────────── */
+  /*
+   * --r-xs: 5px — No es múltiplo de 4, pero el look visual
+   *               (badges, chips inline) requiere menos curvatura
+   *               que 8px. Compromiso documentado.
+   * --r-lg: 18px — Ídem. Usado en login-card y card-grad.
+   *                El look "suave pero no pill" necesita ~18px.
+   */
+  --r-xs:   5px;    /* sbadges, small chips, block-icon       */
+  --r-sm:   8px;    /* botones, inputs, cards estándar        */
+  --r-md:  12px;    /* modals, dropdowns, historial KPIs      */
+  --r-lg:  18px;    /* login-card, card-grad, drawers grandes */
+  --r-pill: 20px;   /* badges redondos, fbtn, filter chips    */
+  --r-full: 9999px; /* avatares, toggles, círculos completos  */
+
+  /* ── Layout ───────────────────────────────────────────── */
+  --drawer-w:      340px;   /* ancho del panel lateral drawer */
+  --nav-h:          52px;   /* altura del navbar              */
+  --sidebar-w:     240px;   /* ancho del sidebar del dashboard*/
+  --sidebar-w-collapsed: 56px;
+}

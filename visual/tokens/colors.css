@@ -1,0 +1,41 @@
+/*
+ * tokens/colors.css — Paleta base de marca Kobalt
+ *
+ * REGLA: Solo primitivos. Sin semántica. Sin temas.
+ * Nunca usar directamente en componentes — pasar por semantic.css.
+ */
+
+:root {
+
+  /* ── Espectro de marca ─────────────────────────────── */
+  --p-cyan:    #29C5F6;
+  --p-blue:    #4D6AF7;
+  --p-purple:  #7B4FE0;
+  --p-magenta: #D946A8;
+  --p-pink:    #F25C8A;
+  --p-orange:  #F7971E;
+
+  /* ── Ramps de feedback (sin semántica aún) ─────────── */
+  /* green */
+  --color-green-400: #34D399;   /* dark mode ok */
+  --color-green-700: #1F7A4F;   /* light mode ok */
+  /* yellow */
+  --color-yellow-400: #FBBF24;  /* dark mode warn */
+  --color-yellow-700: #7A5200;  /* light mode warn */
+  /* red */
+  --color-red-400: #F87171;     /* dark mode err */
+  --color-red-500: #F47080;     /* light mode err border */
+  --color-red-700: #A8202F;     /* light mode err text */
+
+  /* ── Gradientes de marca ────────────────────────────── */
+  --grad-main:   linear-gradient(135deg, #29C5F6, #4D6AF7, #7B4FE0);
+  --grad-border: conic-gradient(from 180deg, #29C5F6, #4D6AF7, #7B4FE0, #A855F7, #29C5F6);
+  --grad-subtle: linear-gradient(135deg, rgba(41,197,246,.08), rgba(123,79,224,.05));
+  --grad-btn:    linear-gradient(135deg, #4D6AF7, #7B4FE0);
+  --k-gh:        linear-gradient(90deg, #29C5F6, #4D6AF7, #7B4FE0);
+  --k-gb:        conic-gradient(from 180deg, #29C5F6, #4D6AF7, #7B4FE0, #D946A8, #F25C8A, #F7971E, #29C5F6);
+
+  /* ── Pure ───────────────────────────────────────────── */
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+}

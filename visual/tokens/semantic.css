@@ -1,0 +1,213 @@
+/*
+ * tokens/semantic.css — Tokens semánticos por tema
+ *
+ * REGLA: Todo token aquí mapea un primitivo de colors.css
+ *        a un rol de UI. Dos bloques: dark (default) y light.
+ *        Los componentes SOLO usan tokens de este archivo.
+ */
+
+/* ═══════════════════════════════════════════════════════
+   TEMA OSCURO — predeterminado
+   ═══════════════════════════════════════════════════════ */
+:root,
+[data-theme="dark"] {
+
+  /* ── Superficies ─────────────────────────────────────── */
+  --page-bg:         #07090d;
+  --surface:         #07090d;
+  --surface-raised:  #0b1018;
+  --surface-overlay: #0f1623;
+  --surface-high:    #131e2e;
+  --card-bg:         #0b1018;
+  --nav-bg:          #0d1525;
+
+  /* ── Texto ───────────────────────────────────────────── */
+  --text-primary:   #E9EEF8;
+  --text-secondary: #9BA8C0;
+  --text-muted:     #5A6A88;
+
+  /* ── Bordes ──────────────────────────────────────────── */
+  --border-subtle:  rgba(77,106,247,.07);
+  --border-default: rgba(77,106,247,.14);
+  --border-hover:   rgba(77,106,247,.40);
+
+  /* ── Acento principal ────────────────────────────────── */
+  --accent:      #4D6AF7;
+  --accent-dim:  rgba(77,106,247,.10);
+  --accent-glow: rgba(77,106,247,.22);
+
+  /* ── Sidebar ─────────────────────────────────────────── */
+  --sidebar-bg:          #0a1220;
+  --sidebar-border:      rgba(41,197,246,.08);
+  --sidebar-item-hover:  rgba(41,197,246,.05);
+  --sidebar-item-active-bg: rgba(77,106,247,.12);
+
+  /* ── Inputs ──────────────────────────────────────────── */
+  --input-bg:           #0b1018;
+  --input-border:       rgba(41,197,246,.10);
+  --input-focus-border: #4D6AF7;
+  --input-focus-glow:   rgba(77,106,247,.14);
+
+  /* ── Feedback: OK ────────────────────────────────────── */
+  --ok:          var(--color-green-400);
+  --ok-bg:       rgba(52,211,153,.09);
+  --ok-border:   rgba(52,211,153,.22);
+
+  /* ── Feedback: WARN ──────────────────────────────────── */
+  --warn:        var(--color-yellow-400);
+  --warn-bg:     rgba(251,191,36,.09);
+  --warn-border: rgba(251,191,36,.22);
+
+  /* ── Feedback: ERR ───────────────────────────────────── */
+  --err:         var(--color-red-400);
+  --err-bg:      rgba(248,113,113,.09);
+  --err-border:  rgba(248,113,113,.22);
+
+  /* ── Feedback: INFO (acento) ─────────────────────────── */
+  --info-bg:     rgba(77,106,247,.07);
+  --info-border: rgba(77,106,247,.20);
+
+  /* ── Feedback: CYAN ──────────────────────────────────── */
+  --cyan-bg:     rgba(41,197,246,.10);
+  --cyan-border: rgba(41,197,246,.25);
+
+  /* ── Alias backward-compat (badge tokens) ────────────── */
+  --badge-ok-bg:     var(--ok-bg);
+  --badge-ok-color:  var(--ok);
+  --badge-ok-border: var(--ok-border);
+  --badge-warn-bg:   var(--warn-bg);
+  --badge-warn-color: var(--warn);
+  --badge-warn-border: var(--warn-border);
+  --badge-err-bg:    var(--err-bg);
+  --badge-err-color: var(--err);
+  --badge-err-border: var(--err-border);
+
+  /* ── Sombras ─────────────────────────────────────────── */
+  --shadow-sm:          0 1px 4px rgba(0,0,0,.35);
+  --shadow-md:          0 4px 24px rgba(0,0,0,.55);
+  --shadow-lg:          0 8px 48px rgba(0,0,0,.65);
+  --shadow-drawer:     -8px 0 48px rgba(0,0,0,.65);
+  --shadow-glow:        0 4px 24px rgba(77,106,247,.30);
+  --shadow-glow-cyan:   0 4px 20px rgba(41,197,246,.25);
+  --shadow-btn-primary: 0 4px 18px rgba(77,106,247,.32);
+  --shadow-btn-ok:      0 4px 16px rgba(52,211,153,.22);
+  --shadow-btn-err:     0 4px 16px rgba(248,113,113,.22);
+  --shadow-btn-cyan:    0 4px 20px rgba(41,197,246,.25);
+
+  /* ── Overlay / scrim ─────────────────────────────────── */
+  --color-scrim:      rgba(0,0,0,.55);
+  --color-scrim-soft: rgba(0,0,0,.42);
+  --drawer-overlay-bg: rgba(0,0,0,.55);
+
+  /* ── Radial de fondo ─────────────────────────────────── */
+  --page-radial:
+    radial-gradient(ellipse at 18% 22%, rgba(41,197,246,.035) 0%, transparent 52%),
+    radial-gradient(ellipse at 82% 78%, rgba(123,79,224,.028) 0%, transparent 52%);
+
+  /* ── Misc ────────────────────────────────────────────── */
+  --sparkle-color: rgba(77,106,247,.12);
+  --btn-primary-shadow: var(--shadow-btn-primary);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   TEMA CLARO
+   ═══════════════════════════════════════════════════════ */
+[data-theme="light"] {
+
+  /* ── Superficies ─────────────────────────────────────── */
+  --page-bg:         #F3F0FA;
+  --surface:         #F3F0FA;
+  --surface-raised:  #FFFFFF;
+  --surface-overlay: #EDE9F7;
+  --surface-high:    #E8E4F4;
+  --card-bg:         #FFFFFF;
+  --nav-bg:          #FFFFFF;
+
+  /* ── Texto ───────────────────────────────────────────── */
+  --text-primary:   #18102A;
+  --text-secondary: #2A1A46;
+  --text-muted:     #7C7492;
+
+  /* ── Bordes ──────────────────────────────────────────── */
+  --border-subtle:  rgba(123,79,224,.06);
+  --border-default: rgba(123,79,224,.12);
+  --border-hover:   rgba(123,79,224,.45);
+
+  /* ── Acento principal ────────────────────────────────── */
+  --accent:      #7B4FE0;
+  --accent-dim:  rgba(123,79,224,.08);
+  --accent-glow: rgba(123,79,224,.18);
+
+  /* ── Sidebar ─────────────────────────────────────────── */
+  --sidebar-bg:             #FFFFFF;
+  --sidebar-border:         rgba(123,79,224,.10);
+  --sidebar-item-hover:     rgba(123,79,224,.07);
+  --sidebar-item-active-bg: rgba(123,79,224,.11);
+
+  /* ── Inputs ──────────────────────────────────────────── */
+  --input-bg:           #EEEBF8;
+  --input-border:       rgba(123,79,224,.12);
+  --input-focus-border: #7B4FE0;
+  --input-focus-glow:   rgba(123,79,224,.10);
+
+  /* ── Feedback: OK ────────────────────────────────────── */
+  --ok:          var(--color-green-700);
+  --ok-bg:       rgba(92,217,160,.10);
+  --ok-border:   rgba(92,217,160,.26);
+
+  /* ── Feedback: WARN ──────────────────────────────────── */
+  --warn:        var(--color-yellow-700);
+  --warn-bg:     rgba(240,194,78,.10);
+  --warn-border: rgba(240,194,78,.26);
+
+  /* ── Feedback: ERR ───────────────────────────────────── */
+  --err:         var(--color-red-700);
+  --err-bg:      rgba(244,112,128,.10);
+  --err-border:  rgba(244,112,128,.26);
+
+  /* ── Feedback: INFO ──────────────────────────────────── */
+  --info-bg:     rgba(77,106,247,.08);
+  --info-border: rgba(77,106,247,.20);
+
+  /* ── Feedback: CYAN ──────────────────────────────────── */
+  --cyan-bg:     rgba(41,197,246,.10);
+  --cyan-border: rgba(41,197,246,.22);
+
+  /* ── Alias backward-compat ───────────────────────────── */
+  --badge-ok-bg:       var(--ok-bg);
+  --badge-ok-color:    var(--ok);
+  --badge-ok-border:   var(--ok-border);
+  --badge-warn-bg:     var(--warn-bg);
+  --badge-warn-color:  var(--warn);
+  --badge-warn-border: var(--warn-border);
+  --badge-err-bg:      var(--err-bg);
+  --badge-err-color:   var(--err);
+  --badge-err-border:  var(--err-border);
+
+  /* ── Sombras ─────────────────────────────────────────── */
+  --shadow-sm:          0 1px 4px rgba(80,60,140,.08);
+  --shadow-md:          0 4px 20px rgba(80,60,140,.12);
+  --shadow-lg:          0 8px 48px rgba(80,60,140,.16);
+  --shadow-drawer:     -8px 0 48px rgba(80,60,140,.16);
+  --shadow-glow:        0 4px 20px rgba(123,79,224,.22);
+  --shadow-glow-cyan:   0 4px 16px rgba(41,197,246,.18);
+  --shadow-btn-primary: 0 4px 18px rgba(123,79,224,.24);
+  --shadow-btn-ok:      0 4px 16px rgba(52,211,153,.18);
+  --shadow-btn-err:     0 4px 16px rgba(244,112,128,.24);
+  --shadow-btn-cyan:    0 4px 16px rgba(41,197,246,.18);
+
+  /* ── Overlay / scrim ─────────────────────────────────── */
+  --color-scrim:       rgba(40,18,72,.18);
+  --color-scrim-soft:  rgba(40,18,72,.12);
+  --drawer-overlay-bg: rgba(40,18,72,.18);
+
+  /* ── Radial de fondo ─────────────────────────────────── */
+  --page-radial:
+    radial-gradient(ellipse at 18% 22%, rgba(123,79,224,.055) 0%, transparent 52%),
+    radial-gradient(ellipse at 82% 78%, rgba(41,197,246,.035)  0%, transparent 52%);
+
+  /* ── Misc ────────────────────────────────────────────── */
+  --sparkle-color:      rgba(123,79,224,.14);
+  --btn-primary-shadow: var(--shadow-btn-primary);
+}

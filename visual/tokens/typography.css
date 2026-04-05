@@ -1,0 +1,60 @@
+/*
+ * tokens/typography.css — Escala tipográfica Kobalt
+ *
+ * REGLA: Reducir los 32 tamaños encontrados en el codebase a 10 tokens.
+ *        Los componentes SOLO usan tokens de este archivo para font-size.
+ *        Fuentes, pesos, alturas de línea y tracking también aquí.
+ */
+
+:root {
+
+  /* ── Familias ─────────────────────────────────────────── */
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* ── Escala de tamaños (base 1rem = 16px) ─────────────── */
+  /*
+   * Colapso de los 32 valores actuales a 10 tokens:
+   *
+   * .58–.66rem  → --text-2xs  (.62rem)
+   * .68–.72rem  → --text-xs   (.7rem)
+   * .73–.78rem  → --text-sm   (.76rem)
+   * .8–.86rem   → --text-base (.83rem)
+   * .87–.92rem  → --text-md   (.9rem)
+   * .95–1rem    → --text-lg   (1rem)
+   * 1.25–1.3rem → --text-xl   (1.25rem)
+   * 1.4rem      → --text-2xl  (1.4rem)
+   * 1.8–2rem    → --text-3xl  (1.8rem)
+   * 2.4rem      → --text-display (2.4rem)
+   */
+  --text-2xs:      .62rem;   /* labels, hints, monospace meta  */
+  --text-xs:       .70rem;   /* badges, timestamps, captions   */
+  --text-sm:       .76rem;   /* botones pequeños, tab-labels   */
+  --text-base:     .83rem;   /* cuerpo de cards, listas, filas */
+  --text-md:       .90rem;   /* cuerpo principal, inputs       */
+  --text-lg:       1rem;     /* subtítulos de sección          */
+  --text-xl:       1.25rem;  /* KPIs secundarios               */
+  --text-2xl:      1.4rem;   /* títulos de panel               */
+  --text-3xl:      1.8rem;   /* títulos grandes                */
+  --text-display:  2.4rem;   /* hero, stat principal           */
+
+  /* ── Pesos ────────────────────────────────────────────── */
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semibold: 600;
+  --weight-bold:    700;
+  --weight-extrabold: 800;
+
+  /* ── Alturas de línea ─────────────────────────────────── */
+  --leading-tight:   1.25;   /* headings, stat values          */
+  --leading-snug:    1.4;    /* botones, badges                */
+  --leading-normal:  1.55;   /* cuerpo de texto (default body) */
+  --leading-relaxed: 1.7;    /* descripciones, code blocks     */
+
+  /* ── Letter spacing ───────────────────────────────────── */
+  --tracking-tight:  -.03em;  /* logotipos, headings grandes   */
+  --tracking-normal:  0;
+  --tracking-wide:    .04em;  /* badges, caps pequeños         */
+  --tracking-wider:   .07em;  /* labels uppercase              */
+  --tracking-widest:  .18em;  /* section-labels monospace      */
+}
