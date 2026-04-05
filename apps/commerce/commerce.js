@@ -17,7 +17,7 @@
   // F1–F5 — estado visual
   let viewMode     = localStorage.getItem('kobalt:view') || 'grid';
   let activeFilter = 'all';
-  let activeSort   = 'ts-desc';
+  let activeSort   = 'name-az';
   let searchQuery  = '';
 
   // ─── UI diferencial de cuentas locales ───────────────
@@ -61,9 +61,9 @@
                placeholder="Buscar por nombre o SKU…" autocomplete="off">
       </div>
       <select id="sort-select" class="sort-select">
+        <option value="name-az" selected>Nombre A→Z</option>
         <option value="ts-desc">Recientes</option>
         <option value="ts-asc">Antiguos</option>
-        <option value="name-az">Nombre A→Z</option>
         <option value="name-za">Nombre Z→A</option>
         <option value="stk-desc">Mayor stock</option>
       </select>
