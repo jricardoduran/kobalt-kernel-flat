@@ -109,6 +109,23 @@
   color: var(--accent);
 }
 
+/* ── Picker de mes en Historial ── */
+.cm-month-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.cm-month-input {
+  width: 160px;
+  flex: none;
+  padding-left: 14px;   /* sin ícono de lupa */
+}
+
 /* ── Info de sesión (oculta en UI) ── */
 .ki-session-label {
   display: none;

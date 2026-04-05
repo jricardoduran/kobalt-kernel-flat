@@ -30,7 +30,7 @@
     <div class="cm-header">
       <div id="app-tabs" class="cm-tabs">
         <button class="app-tab on" data-tab="inventario">📦 Inventario</button>
-        <button class="app-tab" data-tab="pos">💳 Vender</button>
+        <button class="app-tab" data-tab="pos">💳 Vender (POS)</button>
         <button class="app-tab" data-tab="historial">📊 Historial</button>
       </div>
       <div class="cm-actions">
@@ -103,10 +103,10 @@
 
     <div id="tab-pos" class="tab-page" style="display:none">
 
-    <div class="controls-bar" style="margin-bottom:12px">
-      <div class="search-wrap">
-        <span class="search-ico">⌕</span>
-        <input id="pos-search" type="search" class="search-input"
+    <div class="cm-search-bar">
+      <div class="cm-search-wrap">
+        <span class="cm-search-ico">⌕</span>
+        <input id="pos-search" type="search" class="cm-search-input"
                placeholder="Buscar producto…" autocomplete="off">
       </div>
       <button class="fbtn on" id="pos-f-all">TODOS</button>
@@ -159,8 +159,8 @@
             <input id="sale-notes" type="text"
                    class="k-input" placeholder="Opcional…">
           </div>
-          <button id="sale-confirm" class="btn-primary">
-            Registrar venta
+          <button id="sale-confirm" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">
+            ✓ Registrar venta
           </button>
         </div>
       </div>
@@ -170,14 +170,15 @@
 
     <div id="tab-historial" class="tab-page" style="display:none">
 
-    <div class="controls-bar" style="margin-bottom:12px">
-      <label class="hist-month-label">Mes:
-        <input id="hist-month" type="month" class="k-input" style="width:160px">
+    <div class="cm-search-bar">
+      <label class="hist-month-label cm-month-label">
+        📅
+        <input id="hist-month" type="month" class="cm-search-input cm-month-input">
       </label>
-      <div class="search-wrap" style="max-width:260px">
-        <span class="search-ico">⌕</span>
-        <input id="hist-search" type="search" class="search-input"
-               placeholder="Buscar producto…" autocomplete="off">
+      <div class="cm-search-wrap">
+        <span class="cm-search-ico">⌕</span>
+        <input id="hist-search" type="search" class="cm-search-input"
+               placeholder="Buscar en historial…" autocomplete="off">
       </div>
     </div>
 
