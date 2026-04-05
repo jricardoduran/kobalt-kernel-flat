@@ -35,9 +35,10 @@
           mount:   () => global.KobaltApp_Commerce?.mount,
           unmount: () => global.KobaltApp_Commerce?.unmount,
           children: [
-            { id: 'inventario', label: 'Inventario', icon: '·', type: 'view' },
-            { id: 'pos',        label: 'Vender',     icon: '·', type: 'view' },
-            { id: 'historial',  label: 'Historial',  icon: '·', type: 'view' },
+            { id: 'inventario', label: 'Inventario',     icon: '·', type: 'view' },
+            { id: 'pos',        label: 'Vender',         icon: '·', type: 'view' },
+            { id: 'historial',  label: 'Historial',      icon: '·', type: 'view' },
+            { id: 'pagos',      label: 'Medios de pago', icon: '·', type: 'view' },
           ],
         },
         {
