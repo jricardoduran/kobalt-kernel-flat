@@ -40,13 +40,16 @@
         <button class="app-tab on" data-tab="inventario">📦 Inventario</button>
         <button class="app-tab" data-tab="pos">💳 Vender (POS)</button>
         <button class="app-tab" data-tab="historial">📊 Historial</button>
+        <button class="app-tab" data-tab="pagos">💰 Medios de pago</button>
       </div>
       <div class="cm-actions">
         <!-- inventario -->
-        <button id="btn-export"     class="btn btn-sm"            data-tab-show="inventario">⬇ JSON</button>
-        <button id="btn-toggle-add" class="btn btn-primary btn-sm" data-tab-show="inventario">✦ Agregar Producto</button>
-        <!-- pos — (vacío por ahora, se añadirá acción útil) -->
-        <!-- historial — (vacío por ahora, se añadirá acción útil) -->
+        <button id="btn-export"      class="btn btn-sm"             data-tab-show="inventario">⬇ JSON</button>
+        <button id="btn-toggle-add"  class="btn btn-primary btn-sm" data-tab-show="inventario">✦ Agregar Producto</button>
+        <!-- pos -->
+        <button id="btn-nueva-venta" class="btn btn-sm"             data-tab-show="pos">🔄 Nueva Venta</button>
+        <!-- pagos -->
+        <button id="btn-add-pm"      class="btn btn-primary btn-sm" data-tab-show="pagos">✦ Añadir Medio</button>
       </div>
     </div>
 
@@ -124,55 +127,27 @@
       <button class="fbtn"    id="pos-f-stock">CON STOCK</button>
     </div>
 
-    <div id="pos-grid" style="display:grid;
-         grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-         gap:12px;margin-bottom:20px">
-    </div>
+    <div class="pos-layout">
+      <div id="pos-grid"></div>
 
-    <div id="sale-modal" style="display:none;position:fixed;
-         inset:0;z-index:200;background:rgba(0,0,0,.65);
-         backdrop-filter:blur(4px);
-         align-items:center;justify-content:center">
-      <div style="background:var(--surface-raised);
-                  border:1px solid var(--border-default);
-                  border-radius:var(--r-lg);
-                  width:90%;max-width:400px;
-                  padding:24px;position:relative">
-        <button id="sale-modal-close"
-                style="position:absolute;top:14px;right:16px;
-                       background:none;border:none;
-                       color:var(--text-muted);
-                       font-size:1.2rem;cursor:pointer">✕</button>
-        <div id="sale-pname"
-             style="font-size:1rem;font-weight:700;
-                    margin-bottom:4px"></div>
-        <div id="sale-pmeta"
-             style="font-size:.75rem;color:var(--text-muted);
-                    margin-bottom:16px"></div>
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <div>
-            <label class="field-label">Cantidad</label>
-            <div style="display:flex;align-items:center;gap:6px">
-              <button id="sale-qty-m" class="sb sbm">−</button>
-              <input id="sale-qty" type="number"
-                     class="fi" value="1" min="1"
-                     style="width:70px;text-align:center">
-              <button id="sale-qty-p" class="sb sbp">+</button>
-            </div>
+      <div class="pos-cart">
+        <div class="cart-header">
+          <span class="cart-title">🛒 Carrito</span>
+          <span id="cart-count" class="cart-count">0 items</span>
+        </div>
+        <div id="cart-items" class="cart-items">
+          <div class="cart-empty">Toca un producto para agregarlo</div>
+        </div>
+        <div class="cart-footer">
+          <div class="cart-total-row">
+            <span>Total</span>
+            <span id="cart-total" class="cart-total-val">$0</span>
           </div>
-          <div>
-            <label class="field-label">Precio unitario</label>
-            <input id="sale-price" type="number"
-                   class="k-input" placeholder="0" min="0">
+          <div class="cart-pm-row">
+            <label class="field-label">Medio de pago</label>
+            <select id="cart-pm-select" class="k-input"></select>
           </div>
-          <div>
-            <label class="field-label">Notas</label>
-            <input id="sale-notes" type="text"
-                   class="k-input" placeholder="Opcional…">
-          </div>
-          <button id="sale-confirm" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">
-            ✓ Registrar venta
-          </button>
+          <button id="cart-confirm" class="btn btn-primary" disabled>✓ Registrar venta</button>
         </div>
       </div>
     </div>
@@ -198,6 +173,19 @@
     <div id="hist-list"></div>
 
     </div><!-- /tab-historial -->
+
+    <div id="tab-pagos" class="tab-page" style="display:none">
+
+    <div id="pm-add-bar" class="pm-add-bar" style="display:none">
+      <input type="text" id="pm-icon" placeholder="Ícono (ej: 💵)" class="fi" style="width:72px;text-align:center">
+      <input type="text" id="pm-name" placeholder="Nombre del medio de pago" class="fi" style="flex:1">
+      <button id="pm-save"   class="btn btn-primary btn-sm">Guardar</button>
+      <button id="pm-cancel" class="btn btn-sm">✕</button>
+    </div>
+
+    <div id="pm-list" class="pm-list"></div>
+
+    </div><!-- /tab-pagos -->
   `;
 
   const $ = id => document.getElementById(id);
@@ -240,8 +228,8 @@
   }
 
   // ═══ POS — estado ═══
-  let posFilter      = 'all';
-  let currentSaleEid = null;
+  let posFilter = 'all';
+  let posCart   = [];   // [{product_eid, nombre, sku, precio, qty}]
 
   function setPosFilter(f) {
     posFilter = f;
@@ -293,46 +281,115 @@
     }).join('');
 
     grid.querySelectorAll('.pcard').forEach(c =>
-      c.addEventListener('click', () => openSaleModal(c.dataset.eid)));
+      c.addEventListener('click', () => addToCart(c.dataset.eid)));
   }
 
-  async function openSaleModal(eid) {
+  async function addToCart(eid) {
     const entity = await K().loadEntityLocal(session.db, eid);
     if (!entity) return;
     const d = parsePayload(entity.payload);
-    currentSaleEid = eid;
-    $('sale-pname').textContent = d.nombre || d.name || '—';
-    $('sale-pmeta').textContent =
-      [d.sku ? 'SKU: ' + d.sku : null,
-       d.stock != null ? 'Stock: ' + d.stock : null]
-      .filter(Boolean).join(' · ');
-    $('sale-qty').value   = 1;
-    $('sale-price').value = '';
-    $('sale-notes').value = '';
-    $('sale-modal').style.display = 'flex';
-    $('sale-qty').focus();
+    const existing = posCart.find(i => i.product_eid === eid);
+    if (existing) {
+      existing.qty++;
+    } else {
+      posCart.push({
+        product_eid: eid,
+        nombre: d.nombre || d.name || '—',
+        sku:    d.sku || '',
+        precio: 0,
+        qty:    1,
+      });
+    }
+    renderCart();
   }
 
-  async function recordSale() {
-    if (!currentSaleEid || !session) return;
-    const entity = await K().loadEntityLocal(session.db, currentSaleEid);
-    if (!entity) return;
-    const qty   = Math.max(1, Number($('sale-qty').value)   || 1);
-    const price = Math.max(0, Number($('sale-price').value) || 0);
-    const notes = $('sale-notes').value.trim();
-    const sp    = makeSalePayload(entity, qty, price, notes);
+  function renderCart() {
+    const itemsEl   = $('cart-items');
+    const countEl   = $('cart-count');
+    const totalEl   = $('cart-total');
+    const confirmEl = $('cart-confirm');
+    if (!itemsEl) return;
 
-    await K().createEntity(session, sp, 'sale');
+    const total = posCart.reduce((s, i) => s + i.precio * i.qty, 0);
+    const count = posCart.reduce((s, i) => s + i.qty, 0);
+    if (countEl)   countEl.textContent   = count + ' item' + (count !== 1 ? 's' : '');
+    if (totalEl)   totalEl.textContent   = V().fmtMoney(total);
+    if (confirmEl) confirmEl.disabled    = posCart.length === 0;
 
-    const d = parsePayload(entity.payload);
-    if (d.stock !== null && d.stock !== undefined)
-      await updateField(currentSaleEid, 'stock', Math.max(0, Number(d.stock) - qty));
+    if (!posCart.length) {
+      itemsEl.innerHTML = `<div class="cart-empty">Toca un producto para agregarlo</div>`;
+      return;
+    }
 
-    $('sale-modal').style.display = 'none';
-    currentSaleEid = null;
-    V().toast('Venta: ' + qty + '× ' + (d.nombre || d.name || '—').slice(0, 30));
-    doSync().catch(() => setBadge('badge-warn', 'PENDING'));
-    await refreshPOS();
+    const { esc } = V();
+    itemsEl.innerHTML = posCart.map((item, idx) => `
+      <div class="cart-item">
+        <div class="cart-item-info">
+          <div class="cart-item-name">${esc(item.nombre)}</div>
+          ${item.sku ? `<div class="cart-item-sku">${esc(item.sku)}</div>` : ''}
+        </div>
+        <div class="cart-item-controls">
+          <button class="sb sbm" data-cart-m="${idx}">−</button>
+          <span class="cart-qty">${item.qty}</span>
+          <button class="sb sbp" data-cart-p="${idx}">+</button>
+        </div>
+        <input class="fi cart-price" type="number" placeholder="Precio" min="0"
+               value="${item.precio || ''}" data-cart-price="${idx}">
+        <button class="cart-rm" data-cart-rm="${idx}">✕</button>
+      </div>`).join('');
+
+    itemsEl.querySelectorAll('[data-cart-m]').forEach(b =>
+      b.addEventListener('click', () => {
+        const i = posCart[Number(b.dataset.cartM)];
+        if (i) { i.qty = Math.max(1, i.qty - 1); renderCart(); }
+      }));
+    itemsEl.querySelectorAll('[data-cart-p]').forEach(b =>
+      b.addEventListener('click', () => {
+        const i = posCart[Number(b.dataset.cartP)];
+        if (i) { i.qty++; renderCart(); }
+      }));
+    itemsEl.querySelectorAll('[data-cart-price]').forEach(inp =>
+      inp.addEventListener('input', () => {
+        const i = posCart[Number(inp.dataset.cartPrice)];
+        if (i) { i.precio = Math.max(0, Number(inp.value) || 0); renderCart(); }
+      }));
+    itemsEl.querySelectorAll('[data-cart-rm]').forEach(b =>
+      b.addEventListener('click', () => {
+        posCart.splice(Number(b.dataset.cartRm), 1);
+        renderCart();
+      }));
+  }
+
+  function clearCart() {
+    posCart = [];
+    renderCart();
+  }
+
+  async function confirmCartSale() {
+    if (!session || !posCart.length) return;
+    const pmSelect = $('cart-pm-select');
+    const pmName   = pmSelect?.options[pmSelect.selectedIndex]?.text || 'Efectivo';
+    const btn      = $('cart-confirm');
+    if (btn) btn.disabled = true;
+
+    try {
+      for (const item of posCart) {
+        const entity = await K().loadEntityLocal(session.db, item.product_eid);
+        if (!entity) continue;
+        const sp = { ...makeSalePayload(entity, item.qty, item.precio, ''), payment_method: pmName };
+        await K().createEntity(session, sp, 'sale');
+        const d = parsePayload(entity.payload);
+        if (d.stock != null)
+          await updateField(item.product_eid, 'stock', Math.max(0, Number(d.stock) - item.qty));
+      }
+      const n = posCart.length;
+      clearCart();
+      V().toast('Venta registrada: ' + n + ' producto' + (n !== 1 ? 's' : ''));
+      doSync().catch(() => setBadge('badge-warn', 'PENDING'));
+      await refreshPOS();
+    } finally {
+      if (btn) btn.disabled = posCart.length === 0;
+    }
   }
 
   // ═══ HISTORIAL — estado ═══
@@ -423,6 +480,58 @@
       try { return a + (parsePayload(s.payload).total || 0); } catch { return a; }
     }, 0);
     return { count, units, revenue, avg: count > 0 ? revenue / count : 0 };
+  }
+
+  // ═══ MEDIOS DE PAGO ═══
+
+  async function loadPaymentMethods() {
+    if (!session) return [];
+    const all = await K().loadEntitiesByType(session.db, 'payment_method');
+    return all.filter(m => !parsePayload(m.payload)._deleted);
+  }
+
+  async function refreshPMSelect() {
+    const pmSelect = $('cart-pm-select');
+    if (!pmSelect) return;
+    const methods  = await loadPaymentMethods();
+    const { esc }  = V();
+    pmSelect.innerHTML = methods.length
+      ? methods.map(m => {
+          const d = parsePayload(m.payload);
+          return `<option value="${esc(m.entityId)}">${esc(((d.icon || '') + ' ' + (d.name || '')).trim())}</option>`;
+        }).join('')
+      : '<option value="">💵 Efectivo</option>';
+  }
+
+  async function refreshPaymentMethods() {
+    const listEl = $('pm-list');
+    if (!listEl) return;
+    const methods = await loadPaymentMethods();
+    const { esc } = V();
+    if (!methods.length) {
+      listEl.innerHTML = `<div class="hist-empty">Sin medios de pago. Usa "✦ Añadir Medio" para crear uno.</div>`;
+      return;
+    }
+    listEl.innerHTML = methods.map(m => {
+      const d = parsePayload(m.payload);
+      return `
+        <div class="pm-card">
+          <span class="pm-icon">${esc(d.icon || '💳')}</span>
+          <span class="pm-name">${esc(d.name || '—')}</span>
+          <button class="btn btn-sm" data-pm-del="${esc(m.entityId)}">✕ Eliminar</button>
+        </div>`;
+    }).join('');
+    listEl.querySelectorAll('[data-pm-del]').forEach(btn =>
+      btn.addEventListener('click', async () => {
+        const entity = await K().loadEntityLocal(session.db, btn.dataset.pmDel);
+        if (!entity) return;
+        const d = parsePayload(entity.payload);
+        d._deleted = true;
+        await K().saveEntityVersion(session, btn.dataset.pmDel, d);
+        await refreshPaymentMethods();
+        await refreshPMSelect();
+        doSync().catch(() => {});
+      }));
   }
 
   // F5 — normalización NFD para búsqueda insensible a tildes
@@ -982,35 +1091,39 @@
     });
 
     // POS — listeners
-    $('pos-search')?.addEventListener('input', () => refreshPOS());
-    $('pos-f-all')?.addEventListener('click',  () => setPosFilter('all'));
+    $('pos-search')?.addEventListener('input',  () => refreshPOS());
+    $('pos-f-all')?.addEventListener('click',   () => setPosFilter('all'));
     $('pos-f-stock')?.addEventListener('click', () => setPosFilter('stock'));
-    $('sale-modal-close')?.addEventListener('click', () => {
-      $('sale-modal').style.display = 'none';
-      currentSaleEid = null;
-    });
-    $('sale-qty-m')?.addEventListener('click', () => {
-      $('sale-qty').value = Math.max(1, Number($('sale-qty').value) - 1);
-    });
-    $('sale-qty-p')?.addEventListener('click', () => {
-      $('sale-qty').value = Number($('sale-qty').value) + 1;
-    });
-    $('sale-confirm')?.addEventListener('click', recordSale);
-    $('sale-qty')?.addEventListener('keydown', e => {
-      if (e.key === 'Enter') recordSale();
-    });
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && currentSaleEid) {
-        $('sale-modal').style.display = 'none';
-        currentSaleEid = null;
-      }
-    });
+    $('cart-confirm')?.addEventListener('click', confirmCartSale);
+    $('btn-nueva-venta')?.addEventListener('click', () => clearCart());
 
     // Historial — listeners
     $('hist-month')?.addEventListener('change', () => { _histSig = ''; refreshHistorial(); });
     $('hist-search')?.addEventListener('input',  () => { _histSig = ''; refreshHistorial(); });
 
-    // Tabs de navegación de la app (Inventario / Vender / Historial)
+    // Medios de pago — listeners
+    $('btn-add-pm')?.addEventListener('click', () => {
+      const bar = $('pm-add-bar');
+      if (bar) { bar.style.display = ''; $('pm-name')?.focus(); }
+    });
+    $('pm-cancel')?.addEventListener('click', () => {
+      const bar = $('pm-add-bar');
+      if (bar) bar.style.display = 'none';
+    });
+    $('pm-save')?.addEventListener('click', async () => {
+      const name = $('pm-name')?.value.trim();
+      if (!name) { V().toast('Escribe un nombre'); return; }
+      const icon = $('pm-icon')?.value.trim() || '💳';
+      await K().createEntity(session, { _type: 'payment_method', name, icon }, 'payment_method');
+      $('pm-name').value = ''; $('pm-icon').value = '';
+      $('pm-add-bar').style.display = 'none';
+      await refreshPaymentMethods();
+      await refreshPMSelect();
+      doSync().catch(() => {});
+      V().toast('Medio de pago creado');
+    });
+
+    // Tabs de navegación de la app
     document.querySelectorAll('.app-tab').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.app-tab').forEach(b => b.classList.remove('on'));
@@ -1022,8 +1135,9 @@
         const tab = $('tab-' + btn.dataset.tab);
         if (tab) { tab.style.display = 'block'; tab.classList.add('on'); }
         updateTabActions(btn.dataset.tab);
-        if (btn.dataset.tab === 'pos')       refreshPOS();
+        if (btn.dataset.tab === 'pos') { refreshPOS(); refreshPMSelect(); }
         if (btn.dataset.tab === 'historial') refreshHistorial();
+        if (btn.dataset.tab === 'pagos')     refreshPaymentMethods();
       });
     });
 
@@ -1092,7 +1206,7 @@
     // Navegar a una vista interna (inventario / pos / historial)
     // Llamado por el dashboard cuando el usuario hace clic en un nodo 'view'
     navigateTo(viewId) {
-      const valid = ['inventario', 'pos', 'historial'];
+      const valid = ['inventario', 'pos', 'historial', 'pagos'];
       if (!valid.includes(viewId)) return;
       document.querySelectorAll('.app-tab').forEach(b => b.classList.remove('on'));
       document.querySelectorAll('.tab-page').forEach(p => {
@@ -1104,8 +1218,9 @@
       if (btn) btn.classList.add('on');
       if (tab) { tab.style.display = 'block'; tab.classList.add('on'); }
       updateTabActions(viewId);
-      if (viewId === 'pos')       refreshPOS();
+      if (viewId === 'pos') { refreshPOS(); refreshPMSelect(); }
       if (viewId === 'historial') refreshHistorial();
+      if (viewId === 'pagos')     refreshPaymentMethods();
     },
   };
 
