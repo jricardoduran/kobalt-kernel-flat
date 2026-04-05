@@ -489,6 +489,8 @@
 
   function applyTheme(t) {
     document.documentElement.setAttribute('data-theme', t);
+    // Propagar también al #dashboard para que las vars CSS del tema se apliquen
+    document.getElementById('dashboard')?.setAttribute('data-theme', t);
     localStorage.setItem('kobalt:theme', t);
     const d = $('thIconD'), l = $('thIconL');
     if (d) d.style.display = t === 'dark' ? '' : 'none';

@@ -506,6 +506,11 @@
       const db = $('dashboard');
       db.classList.add('visible');
 
+      // Propagar tema activo al elemento #dashboard
+      // (aunque hereda de <html>, esto permite selectores #dashboard[data-theme])
+      const theme = localStorage.getItem('kobalt:theme') || 'dark';
+      db.setAttribute('data-theme', theme);
+
       // Restaurar estado de sidebar
       _collapsed = localStorage.getItem('kobalt:sidebar:collapsed') === '1';
       $('db-sidebar')?.classList.toggle('collapsed', _collapsed);
