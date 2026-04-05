@@ -1062,6 +1062,24 @@
 
     // Exponer doSync para el botón del topbar del dashboard
     doSync,
+
+    // Navegar a una vista interna (inventario / pos / historial)
+    // Llamado por el dashboard cuando el usuario hace clic en un nodo 'view'
+    navigateTo(viewId) {
+      const valid = ['inventario', 'pos', 'historial'];
+      if (!valid.includes(viewId)) return;
+      document.querySelectorAll('.app-tab').forEach(b => b.classList.remove('on'));
+      document.querySelectorAll('.tab-page').forEach(p => {
+        p.classList.remove('on');
+        p.style.display = 'none';
+      });
+      const btn = document.querySelector(`.app-tab[data-tab="${viewId}"]`);
+      const tab = $('tab-' + viewId);
+      if (btn) btn.classList.add('on');
+      if (tab) { tab.style.display = 'block'; tab.classList.add('on'); }
+      if (viewId === 'pos')       refreshPOS();
+      if (viewId === 'historial') refreshHistorial();
+    },
   };
 
   /* ═══════════════════════════════════════════════════

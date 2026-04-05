@@ -1,16 +1,17 @@
 /* ═══ DASHBOARD LAYOUT ═══
- * Patrón: sidebar colapsable + topbar fija + contenido
+ * Patrón: sidebar árbol colapsable + topbar fija + contenido
  * Clase: I visual — no conoce el kernel
  */
 
 /* ── Variables de layout ── */
 :root {
-  --sidebar-w:      220px;
-  --sidebar-w-col:  52px;
-  --topbar-h:       52px;
-  --sidebar-bg:     var(--surface-raised);
+  --sidebar-w:      200px;
+  --sidebar-w-col:  48px;
+  --topbar-h:       48px;
+  --sidebar-bg:     #090c12;
   --sidebar-border: var(--border-subtle);
   --app-item-r:     var(--r-sm);
+  --view-indent:    20px;
 }
 
 /* ── Estructura base ── */
@@ -29,16 +30,16 @@
   flex-shrink: 0;
   background: var(--nav-bg);
   border-bottom: 1px solid var(--sidebar-border);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  gap: 12px;
+  padding: 0 14px;
+  gap: 10px;
   z-index: 100;
 }
 #db-logo {
-  font-size: .92rem;
+  font-size: .88rem;
   font-weight: 800;
   letter-spacing: -.03em;
   background: var(--k-gh);
@@ -48,7 +49,7 @@
   flex-shrink: 0;
 }
 #db-breadcrumb {
-  font-size: .78rem;
+  font-size: .74rem;
   color: var(--text-muted);
   flex: 1;
   white-space: nowrap;
@@ -62,9 +63,40 @@
 #db-topbar-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-shrink: 0;
 }
+
+/* ── Stats chips en topbar ── */
+#db-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.db-stat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+  letter-spacing: .3px;
+  white-space: nowrap;
+}
+.db-stat-label {
+  opacity: .65;
+  font-size: .58rem;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.db-stat-cyan  { color: var(--p-cyan);    border-color: rgba(41,197,246,.22);  background: rgba(41,197,246,.07);  }
+.db-stat-blue  { color: var(--p-blue);    border-color: rgba(77,106,247,.22);  background: rgba(77,106,247,.07);  }
+.db-stat-ok    { color: var(--ok);        border-color: var(--badge-ok-border);  background: var(--badge-ok-bg);  }
+.db-stat-warn  { color: var(--warn);      border-color: var(--badge-warn-border); background: var(--badge-warn-bg); }
+.db-stat-err   { color: var(--err);       border-color: var(--badge-err-border);  background: var(--badge-err-bg);  }
 
 /* ── Cuerpo: sidebar + contenido ── */
 #db-body {
@@ -93,7 +125,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 10px 12px 6px;
+  padding: 8px 10px 4px;
   flex-shrink: 0;
 }
 #db-collapse-btn button {
@@ -103,7 +135,7 @@
   cursor: pointer;
   padding: 4px;
   border-radius: var(--r-sm);
-  font-size: .9rem;
+  font-size: .88rem;
   transition: color .15s, background .15s;
   line-height: 1;
 }
@@ -112,49 +144,119 @@
   background: var(--surface-overlay);
 }
 
-/* Grupos de navegación */
+/* ── Nav principal ── */
 #db-nav {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 4px 8px;
+  padding: 4px 6px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-}
-.db-nav-group {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.db-nav-group-label {
-  font-size: .6rem;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  padding: 10px 8px 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  opacity: 1;
-  transition: opacity .15s;
-}
-#db-sidebar.collapsed .db-nav-group-label {
-  opacity: 0;
-  pointer-events: none;
-}
-.db-nav-sep {
-  height: 1px;
-  background: var(--border-subtle);
-  margin: 6px 0;
+  gap: 1px;
+  scrollbar-width: thin;
 }
 
-/* Items de navegación */
+/* ── Sección (nivel 1, acordeón) ── */
+.db-section {
+  display: flex;
+  flex-direction: column;
+}
+.db-section-head {
+  /* hereda .db-nav-item */
+  font-size: .66rem !important;
+  font-weight: 700 !important;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-muted) !important;
+}
+.db-section-head:hover {
+  color: var(--text-secondary) !important;
+}
+.db-section-body {
+  display: none;
+  flex-direction: column;
+  gap: 1px;
+  padding-bottom: 4px;
+}
+.db-section-body.open {
+  display: flex;
+}
+/* Colapsar secciones cuando sidebar está colapsado */
+#db-sidebar.collapsed .db-section-body {
+  display: none !important;
+}
+
+/* ── Chevron de sección ── */
+.db-chevron {
+  font-size: .8rem;
+  color: var(--text-muted);
+  transition: transform .2s, opacity .15s;
+  opacity: .55;
+  flex-shrink: 0;
+  margin-left: auto;
+  line-height: 1;
+  pointer-events: none;
+}
+.db-chevron.open {
+  transform: rotate(90deg);
+  opacity: .9;
+}
+#db-sidebar.collapsed .db-chevron {
+  display: none;
+}
+
+/* ── Grupo de app (nivel 2) ── */
+.db-app-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.db-app-head {
+  /* hereda .db-nav-item */
+}
+
+/* ── Hijos de app (vistas, nivel 3) ── */
+.db-app-children {
+  display: none;
+  flex-direction: column;
+  gap: 1px;
+  padding-left: var(--view-indent);
+}
+.db-app-children.active {
+  display: flex;
+}
+
+/* ── Vistas (nivel 3) ── */
+.db-nav-view {
+  /* hereda .db-nav-item */
+  font-size: .7rem !important;
+  color: var(--text-muted) !important;
+  min-height: 28px !important;
+  padding: 5px 8px !important;
+}
+.db-nav-view:hover {
+  color: var(--text-secondary) !important;
+}
+.db-nav-view.active {
+  color: var(--accent) !important;
+  background: var(--accent-dim) !important;
+}
+.db-view-dot {
+  font-size: .75rem !important;
+  color: var(--text-muted);
+  opacity: .5;
+}
+.db-nav-view.active .db-view-dot {
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* ── Items de navegación base ── */
 .db-nav-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
+  gap: 8px;
+  padding: 6px 8px;
   border-radius: var(--app-item-r);
   cursor: pointer;
   border: none;
@@ -162,13 +264,13 @@
   width: 100%;
   text-align: left;
   color: var(--text-muted);
-  font-family: var(--font-body);
-  font-size: .8rem;
+  font-family: var(--font-mono);
+  font-size: .72rem;
   font-weight: 500;
-  transition: all .14s;
+  transition: all .12s;
   white-space: nowrap;
   overflow: hidden;
-  min-height: 36px;
+  min-height: 32px;
   position: relative;
 }
 .db-nav-item:hover {
@@ -184,14 +286,14 @@
   content: '';
   position: absolute;
   left: 0; top: 20%; bottom: 20%;
-  width: 3px;
+  width: 2px;
   border-radius: 2px;
   background: var(--accent);
 }
 .db-nav-icon {
-  font-size: 1rem;
+  font-size: .9rem;
   flex-shrink: 0;
-  width: 20px;
+  width: 18px;
   text-align: center;
   line-height: 1;
 }
@@ -215,15 +317,16 @@
   left: calc(var(--sidebar-w-col) + 8px);
   background: var(--surface-high);
   color: var(--text-primary);
-  font-size: .72rem;
+  font-size: .68rem;
   font-weight: 600;
+  font-family: var(--font-body);
   padding: 4px 10px;
   border-radius: var(--r-sm);
   border: 1px solid var(--border-default);
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: opacity .14s;
+  transition: opacity .12s;
   z-index: 200;
   box-shadow: var(--shadow-md);
 }
@@ -231,9 +334,9 @@
   opacity: 1;
 }
 
-/* Pie de sidebar */
+/* ── Pie de sidebar ── */
 #db-sidebar-foot {
-  padding: 8px;
+  padding: 6px;
   border-top: 1px solid var(--border-subtle);
   flex-shrink: 0;
 }
@@ -252,16 +355,68 @@
   display: none;
   width: 100%;
   min-height: 100%;
-  padding: 24px;
+  padding: 20px 24px;
   box-sizing: border-box;
-  animation: db-fadein .18s ease both;
+  animation: db-fadein .16s ease both;
 }
 .db-app-container.active {
   display: block;
 }
 @keyframes db-fadein {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(5px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Cards con imagen (commerce grid) ── */
+.card-thumb {
+  aspect-ratio: 1;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  position: relative;
+  background: var(--surface-high);
+}
+.card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform .22s ease;
+}
+.card-thumb:hover img {
+  transform: scale(1.04);
+}
+.card-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.52);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity .18s;
+}
+.card-thumb:hover .card-overlay {
+  opacity: 1;
+}
+.card-overlay-label {
+  font-family: var(--font-mono);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--ok);
+  background: rgba(92,217,160,.12);
+  border: 1px solid rgba(92,217,160,.35);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+/* ── Identificador compacto (.cid) ── */
+.cid {
+  font-family: var(--font-mono);
+  font-size: .58rem;
+  color: var(--p-cyan);
+  opacity: .7;
+  letter-spacing: .3px;
 }
 
 /* ── Responsive: sidebar como overlay en móvil ── */
@@ -285,7 +440,7 @@
     padding-top: 0;
   }
   .db-app-container {
-    padding: 16px;
+    padding: 14px 16px;
   }
 }
 
@@ -298,6 +453,6 @@
   min-height: 60vh;
   gap: 12px;
   color: var(--text-muted);
-  font-size: .88rem;
+  font-size: .84rem;
 }
-.db-app-empty-icon { font-size: 2.5rem; opacity: .4; }
+.db-app-empty-icon { font-size: 2.2rem; opacity: .35; }

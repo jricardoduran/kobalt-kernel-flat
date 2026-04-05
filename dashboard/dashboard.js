@@ -10,115 +10,224 @@
 (function(global) {
   'use strict';
 
-  /* ── Registro de apps ─────────────────────────────
-   * Cada app declara su propia metadata.
-   * El dashboard no sabe qué hace cada app.
-   * Solo sabe cómo montarla y desplazarla.
+  /* ── Árbol de navegación — 3 niveles: sección → app → vista ──────
+   * type: 'section' | 'app' | 'view'
+   * Las secciones abren/cierran como acordeones.
+   * Las apps se montan cuando se navega a ellas.
+   * Las vistas se delegan al método navigateTo() de la app activa.
    */
-  const APP_REGISTRY = [
+  const NAV_TREE = [
     {
-      id:      'commerce',
-      label:   'Comercio',
-      icon:    '🏪',
-      desc:    'Inventario y punto de venta',
-      group:   'principal',
-      script:  null,   // ya cargado como script estático
-      css:     './apps/commerce/commerce.css',
-      mount:   () => global.KobaltApp_Commerce?.mount,
-      unmount: () => global.KobaltApp_Commerce?.unmount,
+      id:          'tienda',
+      label:       'Tienda',
+      icon:        '🏪',
+      type:        'section',
+      defaultOpen: true,
+      children: [
+        {
+          id:      'commerce',
+          label:   'Comercio',
+          icon:    '📦',
+          type:    'app',
+          desc:    'Inventario y punto de venta',
+          script:  null,
+          css:     './apps/commerce/commerce.css',
+          mount:   () => global.KobaltApp_Commerce?.mount,
+          unmount: () => global.KobaltApp_Commerce?.unmount,
+          children: [
+            { id: 'inventario', label: 'Inventario', icon: '·', type: 'view' },
+            { id: 'pos',        label: 'Vender',     icon: '·', type: 'view' },
+            { id: 'historial',  label: 'Historial',  icon: '·', type: 'view' },
+          ],
+        },
+        {
+          id:      'canales',
+          label:   'Canales',
+          icon:    '🔗',
+          type:    'app',
+          desc:    'ML, Shopify, WooCommerce',
+          script:  './apps/canales/canales.js',
+          css:     './apps/canales/canales.css',
+          mount:   () => global.KobaltApp_Canales?.mount,
+          unmount: () => global.KobaltApp_Canales?.unmount,
+        },
+      ],
     },
     {
-      id:      'canales',
-      label:   'Canales',
-      icon:    '🔗',
-      desc:    'ML, Shopify, WooCommerce',
-      group:   'principal',
-      script:  './apps/canales/canales.js',
-      css:     './apps/canales/canales.css',
-      mount:   () => global.KobaltApp_Canales?.mount,
-      unmount: () => global.KobaltApp_Canales?.unmount,
+      id:          'herramientas',
+      label:       'Herramientas',
+      icon:        '🛠️',
+      type:        'section',
+      defaultOpen: false,
+      children: [
+        {
+          id:      'imagenes',
+          label:   'Imágenes',
+          icon:    '🖼️',
+          type:    'app',
+          desc:    'Procesador de imágenes',
+          script:  './apps/imagenes/imagenes.js',
+          css:     './apps/imagenes/imagenes.css',
+          mount:   () => global.KobaltApp_Imagenes?.mount,
+          unmount: () => global.KobaltApp_Imagenes?.unmount,
+        },
+      ],
     },
     {
-      id:      'imagenes',
-      label:   'Imágenes',
-      icon:    '🖼️',
-      desc:    'Procesador de imágenes',
-      group:   'principal',
-      script:  './apps/imagenes/imagenes.js',
-      css:     './apps/imagenes/imagenes.css',
-      mount:   () => global.KobaltApp_Imagenes?.mount,
-      unmount: () => global.KobaltApp_Imagenes?.unmount,
-    },
-    {
-      id:      'sesion',
-      label:   'Sesión',
-      icon:    '🔑',
-      desc:    'Estado del kernel y nodo',
-      group:   'sistema',
-      script:  null,   // app inline, sin archivo externo
-      css:     null,
-      mount:   null,
-      unmount: null,
+      id:          'sistema',
+      label:       'Sistema',
+      icon:        '⚙️',
+      type:        'section',
+      defaultOpen: false,
+      children: [
+        {
+          id:      'sesion',
+          label:   'Sesión',
+          icon:    '🔑',
+          type:    'app',
+          desc:    'Estado del kernel y nodo',
+          script:  null,
+          css:     null,
+          mount:   null,
+          unmount: null,
+        },
+      ],
     },
   ];
 
-  const GROUPS = {
-    principal: 'Principal',
-    sistema:   'Sistema',
-  };
-
-  /* ── Estado del dashboard ─────────────────────── */
-  let _session      = null;
-  let _activeAppId  = null;
-  let _collapsed    = false;
+  /* ── Estado del dashboard ─────────────────────────────────────── */
+  let _session       = null;
+  let _activeAppId   = null;   // app montada actualmente
+  let _activeNodeId  = null;   // nodo activo (app o view)
+  let _collapsed     = false;
+  let _openSections  = new Set();
   let _loadedScripts = new Set();
 
   const $ = id => document.getElementById(id);
 
-  /* ── Renderizar sidebar ───────────────────────── */
+  /* ── Utilidades de árbol ──────────────────────────────────────── */
+
+  function flatNodes() {
+    const nodes = [];
+    function walk(list, parentApp) {
+      for (const n of list) {
+        nodes.push({ ...n, _parentApp: parentApp });
+        if (n.children) walk(n.children, n.type === 'app' ? n : parentApp);
+      }
+    }
+    NAV_TREE.forEach(s => {
+      nodes.push({ ...s, _parentApp: null });
+      if (s.children) walk(s.children, null);
+    });
+    return nodes;
+  }
+
+  function findNode(id) {
+    return flatNodes().find(n => n.id === id) || null;
+  }
+
+  function findAppNode(id) {
+    return flatNodes().find(n => n.id === id && n.type === 'app') || null;
+  }
+
+  function viewsOfApp(appId) {
+    const app = findAppNode(appId);
+    return app?.children?.filter(c => c.type === 'view') || [];
+  }
+
+  /* ── Persistencia de estado de secciones ─────────────────────── */
+
+  function loadSectionState() {
+    try {
+      const raw = localStorage.getItem('kobalt:nav:open');
+      if (raw) {
+        JSON.parse(raw).forEach(id => _openSections.add(id));
+        return;
+      }
+    } catch {}
+    // Defaults — abrir las secciones con defaultOpen:true
+    NAV_TREE.forEach(s => { if (s.defaultOpen) _openSections.add(s.id); });
+  }
+
+  function saveSectionState() {
+    localStorage.setItem('kobalt:nav:open',
+      JSON.stringify([..._openSections]));
+  }
+
+  /* ── Renderizar sidebar ───────────────────────────────────────── */
+
   function renderSidebar() {
     const nav = $('db-nav');
     if (!nav) return;
 
-    // Agrupar apps
-    const groups = {};
-    APP_REGISTRY.forEach(app => {
-      if (!groups[app.group]) groups[app.group] = [];
-      groups[app.group].push(app);
-    });
+    nav.innerHTML = NAV_TREE.map(section => renderSection(section)).join('');
 
-    nav.innerHTML = Object.entries(groups).map(
-      ([groupId, apps]) => `
-        <div class="db-nav-group">
-          <div class="db-nav-group-label">
-            ${GROUPS[groupId] || groupId}
-          </div>
-          ${apps.map(app => `
-            <button
-              class="db-nav-item ${app.id === _activeAppId ? 'active' : ''}"
-              data-app="${app.id}"
-              data-tooltip="${app.label}"
-              title="${app.desc}"
-            >
-              <span class="db-nav-icon">${app.icon}</span>
-              <span class="db-nav-label">${app.label}</span>
-            </button>
-          `).join('')}
-        </div>
-        <div class="db-nav-sep"></div>
-      `
-    ).join('');
-
-    nav.querySelectorAll('.db-nav-item').forEach(btn => {
-      btn.addEventListener('click', () =>
-        navigateTo(btn.dataset.app));
+    // Delegación de eventos en el nav
+    nav.querySelectorAll('[data-node]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        navigateTo(btn.dataset.node);
+      });
     });
   }
 
-  /* ── Cargar script de app dinámicamente ────────── */
+  function renderSection(section) {
+    const isOpen = _openSections.has(section.id);
+    return `
+      <div class="db-section" data-section="${section.id}">
+        <button class="db-nav-item db-section-head"
+                data-node="${section.id}"
+                data-tooltip="${section.label}">
+          <span class="db-nav-icon">${section.icon}</span>
+          <span class="db-nav-label">${section.label}</span>
+          <span class="db-chevron ${isOpen ? 'open' : ''}">›</span>
+        </button>
+        <div class="db-section-body ${isOpen ? 'open' : ''}">
+          ${(section.children || []).map(app => renderApp(app)).join('')}
+        </div>
+      </div>`;
+  }
+
+  function renderApp(app) {
+    const isActiveApp  = app.id === _activeAppId;
+    const hasViews     = !!(app.children?.length);
+    const viewsHtml = hasViews && isActiveApp
+      ? `<div class="db-app-children active">
+          ${app.children.map(v => renderView(v, app.id)).join('')}
+         </div>`
+      : hasViews
+      ? `<div class="db-app-children">
+          ${app.children.map(v => renderView(v, app.id)).join('')}
+         </div>`
+      : '';
+
+    return `
+      <div class="db-app-group">
+        <button class="db-nav-item db-app-head ${isActiveApp ? 'active' : ''}"
+                data-node="${app.id}"
+                data-tooltip="${app.label}">
+          <span class="db-nav-icon">${app.icon}</span>
+          <span class="db-nav-label">${app.label}</span>
+        </button>
+        ${viewsHtml}
+      </div>`;
+  }
+
+  function renderView(view, parentAppId) {
+    const isActive = view.id === _activeNodeId;
+    return `
+      <button class="db-nav-item db-nav-view ${isActive ? 'active' : ''}"
+              data-node="${view.id}"
+              data-tooltip="${view.label}">
+        <span class="db-nav-icon db-view-dot">›</span>
+        <span class="db-nav-label">${view.label}</span>
+      </button>`;
+  }
+
+  /* ── Cargar script/CSS dinámicamente ─────────────────────────── */
+
   function loadScript(src) {
-    if (!src || _loadedScripts.has(src))
-      return Promise.resolve();
+    if (!src || _loadedScripts.has(src)) return Promise.resolve();
     return new Promise((res, rej) => {
       const s = document.createElement('script');
       s.src = src;
@@ -136,85 +245,155 @@
     _loadedScripts.add(href);
   }
 
-  /* ── Navegar a una app ──────────────────────────── */
-  async function navigateTo(appId) {
-    const app = APP_REGISTRY.find(a => a.id === appId);
-    if (!app) return;
+  /* ── Navegar a un nodo ────────────────────────────────────────── */
 
-    // Desmontar app anterior
-    if (_activeAppId && _activeAppId !== appId) {
-      const prev = APP_REGISTRY.find(a => a.id === _activeAppId);
-      try { prev?.unmount?.()?.(); } catch {}
+  async function navigateTo(nodeId) {
+    const node = findNode(nodeId);
+    if (!node) return;
+
+    /* SECCIÓN — toggle acordeón */
+    if (node.type === 'section') {
+      if (_openSections.has(nodeId)) {
+        _openSections.delete(nodeId);
+      } else {
+        _openSections.add(nodeId);
+      }
+      saveSectionState();
+      renderSidebar();
+      return;
+    }
+
+    /* VISTA — delegar al navigateTo de la app padre */
+    if (node.type === 'view') {
+      const parentApp = node._parentApp;
+      if (!parentApp) return;
+
+      // Montar la app padre si no está montada
+      if (_activeAppId !== parentApp.id) {
+        await _mountApp(parentApp);
+      }
+
+      // Delegar la vista a la app
+      _activeNodeId = nodeId;
+      updateBreadcrumb(parentApp, node);
+      renderSidebar();
+      localStorage.setItem('kobalt:nav:active', nodeId);
+
+      // Llamar al método navigateTo de la app si existe
+      const appGlobal = _getAppGlobal(parentApp);
+      appGlobal?.navigateTo?.(nodeId);
+      return;
+    }
+
+    /* APP — montar la app */
+    if (node.type === 'app') {
+      await _mountApp(node);
+      return;
+    }
+  }
+
+  /* ── Montar app ───────────────────────────────────────────────── */
+
+  async function _mountApp(appNode) {
+    // Desmontar app anterior si es diferente
+    if (_activeAppId && _activeAppId !== appNode.id) {
+      const prev = findAppNode(_activeAppId);
+      if (prev) {
+        try { prev.unmount?.()?.(); } catch {}
+      }
       const prevContainer = $('db-app-' + _activeAppId);
       if (prevContainer) prevContainer.classList.remove('active');
     }
 
-    _activeAppId = appId;
+    _activeAppId  = appNode.id;
+    _activeNodeId = appNode.id;
 
-    // Actualizar breadcrumb
-    const bc = $('db-breadcrumb');
-    if (bc) bc.innerHTML =
-      `<strong>${app.icon} ${app.label}</strong>
-       <span style="color:var(--border-default)"> / </span>
-       <span>${app.desc}</span>`;
+    updateBreadcrumb(appNode);
+    renderSidebar();
 
-    // Actualizar sidebar
-    document.querySelectorAll('.db-nav-item').forEach(b =>
-      b.classList.toggle('active', b.dataset.app === appId));
+    localStorage.setItem('kobalt:nav:active', appNode.id);
 
-    // Mostrar contenedor de la app
-    let container = $('db-app-' + appId);
+    // Contenedor de la app
+    let container = $('db-app-' + appNode.id);
     if (!container) {
       container = document.createElement('div');
-      container.id = 'db-app-' + appId;
+      container.id        = 'db-app-' + appNode.id;
       container.className = 'db-app-container';
       $('db-content').appendChild(container);
     }
     container.classList.add('active');
 
-    // Cargar script y CSS si no están cargados
-    if (app.css)    loadCSS(app.css);
-    if (app.script) {
+    // Cargar CSS y script
+    if (appNode.css)    loadCSS(appNode.css);
+    if (appNode.script) {
       try {
-        await loadScript(app.script);
+        await loadScript(appNode.script);
       } catch (e) {
         container.innerHTML = `
           <div class="db-app-empty">
             <div class="db-app-empty-icon">⚠️</div>
-            <div>No se pudo cargar ${app.label}</div>
+            <div>No se pudo cargar ${appNode.label}</div>
             <div style="font-size:.72rem">${e.message}</div>
           </div>`;
         return;
       }
     }
 
-    // Montar app — app inline (sesion) o módulo externo
-    if (appId === 'sesion') {
+    // App especial inline: sesión
+    if (appNode.id === 'sesion') {
       renderSesionApp(container);
       return;
     }
 
-    const mountFn = app.mount?.();
+    const mountFn = appNode.mount?.();
     if (mountFn) {
       try {
         mountFn(container.id, _session);
       } catch (e) {
-        console.error('[Dashboard] Error montando', appId, e);
+        console.error('[Dashboard] Error montando', appNode.id, e);
       }
     } else {
       container.innerHTML = `
         <div class="db-app-empty">
-          <div class="db-app-empty-icon">${app.icon}</div>
-          <div style="font-weight:600">${app.label}</div>
+          <div class="db-app-empty-icon">${appNode.icon}</div>
+          <div style="font-weight:600">${appNode.label}</div>
           <div>En construcción</div>
         </div>`;
     }
-
-    // Guardar última app activa
-    localStorage.setItem('kobalt:dashboard:last', appId);
   }
 
-  /* ── App inline: Sesión ─────────────────────────── */
+  /* ── Obtener global de una app ────────────────────────────────── */
+
+  function _getAppGlobal(appNode) {
+    const map = {
+      commerce:  global.KobaltApp_Commerce,
+      canales:   global.KobaltApp_Canales,
+      imagenes:  global.KobaltApp_Imagenes,
+    };
+    return map[appNode.id] || null;
+  }
+
+  /* ── Breadcrumb ───────────────────────────────────────────────── */
+
+  function updateBreadcrumb(appNode, viewNode) {
+    const bc = $('db-breadcrumb');
+    if (!bc) return;
+    if (viewNode) {
+      bc.innerHTML =
+        `<strong>${appNode.icon} ${appNode.label}</strong>
+         <span style="color:var(--border-default)"> / </span>
+         <span>${viewNode.label}</span>`;
+    } else {
+      bc.innerHTML =
+        `<strong>${appNode.icon} ${appNode.label}</strong>
+         <span style="color:var(--text-muted);font-size:.72rem">
+           — ${appNode.desc || ''}
+         </span>`;
+    }
+  }
+
+  /* ── App inline: Sesión ───────────────────────────────────────── */
+
   function renderSesionApp(container) {
     if (!_session) return;
     const s = _session;
@@ -226,9 +405,9 @@
           Estado del kernel
         </div>
         ${[
-          ['Node ID',    s.nodeId   || '—'],
-          ['DB ID',      s.db_id    || '—'],
-          ['Kernel',     global.__KOBALT__?.version || '—'],
+          ['Node ID', s.nodeId  || '—'],
+          ['DB ID',   s.db_id   || '—'],
+          ['Kernel',  global.__KOBALT__?.version || '—'],
         ].map(([label, val]) => `
           <div style="display:flex;justify-content:space-between;
                       padding:10px 0;
@@ -250,7 +429,8 @@
     $('db-logout-btn')?.addEventListener('click', logout);
   }
 
-  /* ── Toggle sidebar ─────────────────────────────── */
+  /* ── Toggle sidebar ───────────────────────────────────────────── */
+
   function toggleSidebar() {
     _collapsed = !_collapsed;
     const sidebar = $('db-sidebar');
@@ -261,71 +441,82 @@
       _collapsed ? '1' : '0');
   }
 
-  /* ── Logout ─────────────────────────────────────── */
+  /* ── Logout ───────────────────────────────────────────────────── */
+
   function logout() {
-    // Desmontar app activa
     if (_activeAppId) {
-      const app = APP_REGISTRY.find(a => a.id === _activeAppId);
+      const app = findAppNode(_activeAppId);
       try { app?.unmount?.()?.(); } catch {}
     }
-    _session     = null;
-    _activeAppId = null;
+    _session      = null;
+    _activeAppId  = null;
+    _activeNodeId = null;
 
     $('dashboard').classList.remove('visible');
     $('screen-login').style.display = '';
 
-    // Limpiar contenedores de apps
     document.querySelectorAll('.db-app-container')
       .forEach(c => c.remove());
   }
 
-  /* ── API pública del dashboard ──────────────────── */
+  /* ── Actualizar chips de stats en el topbar ───────────────────── */
+
+  function updateStats(stats) {
+    // stats: { label, value, variant }[]  variant: ok | warn | err | cyan | blue
+    const bar = $('db-stats-bar');
+    if (!bar) return;
+    bar.innerHTML = stats.map(s =>
+      `<span class="db-stat-chip db-stat-${s.variant || 'cyan'}">
+        ${s.label ? `<span class="db-stat-label">${s.label}</span>` : ''}
+        <span class="db-stat-value">${s.value}</span>
+      </span>`
+    ).join('');
+  }
+
+  /* ── API pública del dashboard ────────────────────────────────── */
+
   global.KobaltDashboard = {
 
-    /* El kernel llama a esto después del login */
     open(session) {
       _session = session;
 
-      // Mostrar dashboard
       $('screen-login').style.display = 'none';
       const db = $('dashboard');
       db.classList.add('visible');
 
       // Restaurar estado de sidebar
-      _collapsed = localStorage.getItem(
-        'kobalt:sidebar:collapsed') === '1';
-      $('db-sidebar')?.classList.toggle(
-        'collapsed', _collapsed);
+      _collapsed = localStorage.getItem('kobalt:sidebar:collapsed') === '1';
+      $('db-sidebar')?.classList.toggle('collapsed', _collapsed);
       const icon = $('db-toggle-icon');
       if (icon) icon.textContent = _collapsed ? '→' : '←';
+
+      // Cargar estado de secciones
+      loadSectionState();
 
       // Renderizar nav
       renderSidebar();
 
-      // Ir a la última app visitada o commerce por defecto
-      const last = localStorage.getItem(
-        'kobalt:dashboard:last') || 'commerce';
+      // Restaurar última app/vista o ir a commerce por defecto
+      const last = localStorage.getItem('kobalt:nav:active') || 'commerce';
       navigateTo(last);
     },
 
     logout,
     navigateTo,
+    updateStats,
   };
 
-  /* ── Inicialización del DOM ─────────────────────── */
-  document.addEventListener('DOMContentLoaded', () => {
-    $('db-collapse-btn-el')?.addEventListener(
-      'click', toggleSidebar);
+  /* ── Inicialización del DOM ───────────────────────────────────── */
 
-    // Logout desde el pie de la sidebar
+  document.addEventListener('DOMContentLoaded', () => {
+    $('db-collapse-btn-el')?.addEventListener('click', toggleSidebar);
+
     $('db-logout-foot')?.addEventListener('click', logout);
 
-    // Sync desde la topbar
     $('db-sync-btn')?.addEventListener('click', () => {
       global.KobaltApp_Commerce?.doSync?.();
     });
 
-    // Móvil: mostrar botón de menú y manejar overlay
     if (window.innerWidth <= 768) {
       const mobileMenu = $('db-mobile-menu');
       if (mobileMenu) mobileMenu.style.display = '';
