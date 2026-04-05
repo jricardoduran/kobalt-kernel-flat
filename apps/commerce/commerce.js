@@ -1101,15 +1101,19 @@
     // Theme
     applyTheme(localStorage.getItem('kobalt:theme') || 'dark');
     $('btnTheme')?.addEventListener('click', () => {
-      if (globalThis.KobaltDashboard?.getConnectivityMode?.() !== 'stable') {
-        V()?.toast('Tema adaptativo activo — configura en Sistema → Configuración');
-        return;
-      }
-      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      if (globalThis.KobaltDashboard?.applyThemeGlobal) {
-        globalThis.KobaltDashboard.applyThemeGlobal(next);
+      const db   = globalThis.KobaltDashboard;
+      const mode = db?.getConnectivityMode?.() ?? 'stable';
+
+      if (mode === 'auto-lc') {
+        // flip: online=light,offline=dark → online=dark,offline=light
+        db.setConnectivityMode('auto-dc');
+      } else if (mode === 'auto-dc') {
+        // flip: online=dark,offline=light → online=light,offline=dark
+        db.setConnectivityMode('auto-lc');
       } else {
-        applyTheme(next);
+        // stable — cambio directo de tema
+        const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        db?.applyThemeGlobal ? db.applyThemeGlobal(next) : applyTheme(next);
       }
     });
 
