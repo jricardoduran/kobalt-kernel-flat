@@ -462,13 +462,14 @@
   /* ── Actualizar chips de stats en el topbar ───────────────────── */
 
   function updateStats(stats) {
-    // stats: { label, value, variant }[]  variant: ok | warn | err | cyan | blue
+    // stats: Array de { label, value, variant }
+    // variant: 'ok' | 'warn' | 'err' | 'cyan' | 'blue'
     const bar = $('db-stats-bar');
     if (!bar) return;
     bar.innerHTML = stats.map(s =>
-      `<span class="db-stat-chip db-stat-${s.variant || 'cyan'}">
-        ${s.label ? `<span class="db-stat-label">${s.label}</span>` : ''}
-        <span class="db-stat-value">${s.value}</span>
+      `<span class="chip ${s.variant || 'cyan'}">
+        ${s.label ? `<span style="opacity:.6;font-size:.58rem;text-transform:uppercase;letter-spacing:.5px">${s.label}</span>` : ''}
+        <strong>${s.value}</strong>
       </span>`
     ).join('');
   }

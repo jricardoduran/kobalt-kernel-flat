@@ -39,17 +39,17 @@
   z-index: 100;
 }
 #db-logo {
-  font-size: .88rem;
+  font-size: .92rem;
   font-weight: 800;
-  letter-spacing: -.03em;
-  background: var(--k-gh);
+  letter-spacing: -.04em;
+  background: var(--grad-main);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   flex-shrink: 0;
 }
 #db-breadcrumb {
-  font-size: .74rem;
+  font-size: .75rem;
   color: var(--text-muted);
   flex: 1;
   white-space: nowrap;
@@ -288,7 +288,7 @@
   left: 0; top: 20%; bottom: 20%;
   width: 2px;
   border-radius: 2px;
-  background: var(--accent);
+  background: var(--grad-main);
 }
 .db-nav-icon {
   font-size: .9rem;
@@ -456,3 +456,14 @@
   font-size: .84rem;
 }
 .db-app-empty-icon { font-size: 2.2rem; opacity: .35; }
+
+/* ── Botón de salir — estilo peligro sutil ── */
+#db-logout-foot {
+  color: var(--err);
+  opacity: .65;
+}
+#db-logout-foot:hover {
+  opacity: 1;
+  background: rgba(248,113,113,.06) !important;
+  color: var(--err) !important;
+}
