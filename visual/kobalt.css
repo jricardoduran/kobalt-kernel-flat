@@ -486,3 +486,27 @@ body{font-family:var(--font-body);background:var(--page-bg);color:var(--text-pri
 .code-block .hl2{color:var(--p-purple)}
 .code-block .hl3{color:#34D399}
 .code-block .dim{color:var(--text-muted);opacity:.5}
+
+/* ═══ DESIGN SYSTEM — FORMULARIOS ═══ */
+.input-group{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.input-label{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
+.input-hint{font-size:.7rem;color:var(--text-muted);opacity:.65;margin-top:1px}
+.input-wrap{position:relative}
+.input-wrap .k-input{padding-left:38px}
+.input-wrap .input-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.9rem;pointer-events:none}
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.input-row{grid-template-columns:1fr}}
+.k-select{width:100%;background:var(--input-bg);border:1px solid var(--input-border);border-radius:var(--r-sm);color:var(--text-primary);font-family:var(--font-body);font-size:.85rem;padding:10px 13px;outline:none;cursor:pointer;transition:border-color .18s;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235A6A88' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:36px}
+.k-select:focus{border-color:var(--input-focus-border)}
+.k-input.is-error{border-color:var(--err);box-shadow:0 0 0 3px rgba(248,113,113,.1)}
+.k-input.is-ok{border-color:var(--ok);box-shadow:0 0 0 3px rgba(52,211,153,.1)}
+
+/* ═══ DESIGN SYSTEM — TABS BAR ═══ */
+.tab-bar{display:flex;border-bottom:1px solid var(--border-subtle);gap:0;margin-bottom:20px;overflow-x:auto}
+.tab-bar .tab-btn{background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-family:var(--font-body);font-size:.8rem;font-weight:600;padding:9px 16px;cursor:pointer;transition:all .15s;margin-bottom:-1px;white-space:nowrap;flex-shrink:0}
+.tab-bar .tab-btn:hover{color:var(--text-primary)}
+.tab-bar .tab-btn.active{color:var(--p-cyan);border-bottom-color:var(--p-cyan)}
+
+/* ═══ DESIGN SYSTEM — SECTION LABEL ═══ */
+.section-label{font-family:var(--font-mono);font-size:.63rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--p-blue);margin-bottom:16px;display:flex;align-items:center;gap:10px;margin-top:4px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border-subtle)}

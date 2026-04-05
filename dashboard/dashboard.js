@@ -71,6 +71,25 @@
           mount:   () => global.KobaltApp_Imagenes?.mount,
           unmount: () => global.KobaltApp_Imagenes?.unmount,
         },
+        {
+          id:      'design',
+          label:   'Design System',
+          icon:    '◈',
+          type:    'app',
+          desc:    'Componentes y tokens de la UI Kobalt',
+          script:  './apps/design/design.js',
+          css:     null,
+          mount:   () => global.KobaltApp_Design?.mount,
+          unmount: () => global.KobaltApp_Design?.unmount,
+          children: [
+            { id: 'design.tokens',      label: 'Tokens',      icon: '·', type: 'view', view: 'tokens'      },
+            { id: 'design.botones',     label: 'Botones',     icon: '·', type: 'view', view: 'botones'     },
+            { id: 'design.datos',       label: 'Datos',       icon: '·', type: 'view', view: 'datos'       },
+            { id: 'design.formularios', label: 'Formularios', icon: '·', type: 'view', view: 'formularios' },
+            { id: 'design.feedback',    label: 'Feedback',    icon: '·', type: 'view', view: 'feedback'    },
+            { id: 'design.layout',      label: 'Layout',      icon: '·', type: 'view', view: 'layout'      },
+          ],
+        },
       ],
     },
     {
@@ -279,9 +298,10 @@
       renderSidebar();
       localStorage.setItem('kobalt:nav:active', nodeId);
 
-      // Llamar al método navigateTo de la app si existe
+      // node.view separa el id de nav del id de vista interno de la app
+      // ej: 'design.tokens' (nav) → 'tokens' (app.navigateTo)
       const appGlobal = _getAppGlobal(parentApp);
-      appGlobal?.navigateTo?.(nodeId);
+      appGlobal?.navigateTo?.(node.view || nodeId);
       return;
     }
 
@@ -369,6 +389,7 @@
       commerce:  global.KobaltApp_Commerce,
       canales:   global.KobaltApp_Canales,
       imagenes:  global.KobaltApp_Imagenes,
+      design:    global.KobaltApp_Design,
     };
     return map[appNode.id] || null;
   }
