@@ -24,22 +24,22 @@
 
 /* ═══ 2. TEMA OSCURO (predeterminado) ═══ */
 :root,[data-theme="dark"]{
-  --page-bg:#050C18;--surface:#050C18;--surface-raised:#091220;
-  --surface-overlay:#0D182C;--surface-high:#111E36;
+  --page-bg:#07090d;--surface:#07090d;--surface-raised:#0b1018;
+  --surface-overlay:#0f1623;--surface-high:#131e2e;
   --text-primary:#E9EEF8;--text-secondary:#C8D2E8;--text-muted:#7A8DB8;
-  --border-default:rgba(41,197,246,.12);--border-subtle:rgba(41,197,246,.06);
+  --border-default:rgba(41,197,246,.11);--border-subtle:rgba(41,197,246,.055);
   --accent:#4D6AF7;--accent-dim:rgba(77,106,247,.10);--accent-glow:rgba(77,106,247,.22);
-  --nav-bg:rgba(5,12,24,.94);--card-bg:#091220;
-  --shadow-md:0 4px 20px rgba(0,0,0,.45);--shadow-drawer:-8px 0 48px rgba(0,0,0,.55);
-  --page-radial:radial-gradient(ellipse at 18% 22%,rgba(41,197,246,.04) 0%,transparent 52%),radial-gradient(ellipse at 82% 78%,rgba(123,79,224,.035) 0%,transparent 52%);
-  --input-bg:#091220;--input-border:rgba(41,197,246,.11);
+  --nav-bg:rgba(7,9,13,.96);--card-bg:#0b1018;
+  --shadow-md:0 4px 24px rgba(0,0,0,.55);--shadow-drawer:-8px 0 48px rgba(0,0,0,.65);
+  --page-radial:radial-gradient(ellipse at 18% 22%,rgba(41,197,246,.035) 0%,transparent 52%),radial-gradient(ellipse at 82% 78%,rgba(123,79,224,.028) 0%,transparent 52%);
+  --input-bg:#0b1018;--input-border:rgba(41,197,246,.10);
   --input-focus-border:#4D6AF7;--input-focus-glow:rgba(77,106,247,.14);
-  --sparkle-color:rgba(77,106,247,.14);
+  --sparkle-color:rgba(77,106,247,.12);
   --btn-primary-shadow:0 4px 18px rgba(77,106,247,.32);
-  --badge-ok-bg:rgba(92,217,160,.09);--badge-ok-color:#5CD9A0;--badge-ok-border:rgba(92,217,160,.22);
-  --badge-warn-bg:rgba(240,194,78,.09);--badge-warn-color:#F0C24E;--badge-warn-border:rgba(240,194,78,.22);
-  --badge-err-bg:rgba(244,112,128,.09);--badge-err-color:#F47080;--badge-err-border:rgba(244,112,128,.22);
-  --drawer-overlay-bg:rgba(0,0,0,.45);
+  --badge-ok-bg:rgba(92,217,160,.08);--badge-ok-color:#5CD9A0;--badge-ok-border:rgba(92,217,160,.20);
+  --badge-warn-bg:rgba(240,194,78,.08);--badge-warn-color:#F0C24E;--badge-warn-border:rgba(240,194,78,.20);
+  --badge-err-bg:rgba(244,112,128,.08);--badge-err-color:#F47080;--badge-err-border:rgba(244,112,128,.20);
+  --drawer-overlay-bg:rgba(0,0,0,.55);
 }
 
 /* ═══ 3. TEMA CLARO ═══ */
@@ -335,3 +335,25 @@ body{font-family:var(--font-body);background:var(--page-bg);color:var(--text-pri
   color:var(--text-muted);margin-bottom:4px;}
 .pcard{cursor:pointer;transition:border-color .15s;}
 .pcard:hover{border-color:var(--accent) !important;}
+
+/* ═══ HISTORIAL ═══ */
+.hist-month-label{display:flex;align-items:center;gap:8px;
+  font-size:.72rem;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--text-muted);}
+.hist-summary-grid{display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:10px;margin-bottom:20px;}
+.hist-kpi{background:var(--surface-raised);border:1px solid var(--border-default);
+  border-radius:var(--r-md);padding:14px 16px;}
+.hist-kpi-label{font-size:.65rem;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;}
+.hist-kpi-val{font-size:1.25rem;font-weight:800;color:var(--text-primary);}
+.hist-row{display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-bottom:1px solid var(--border-subtle);
+  font-size:.8rem;}
+.hist-row:last-child{border-bottom:none;}
+.hist-row-name{flex:1;font-weight:600;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;}
+.hist-row-meta{font-size:.72rem;color:var(--text-muted);white-space:nowrap;}
+.hist-row-total{font-weight:700;color:var(--accent);white-space:nowrap;}
+.hist-empty{color:var(--text-muted);font-size:.82rem;padding:32px 0;}
