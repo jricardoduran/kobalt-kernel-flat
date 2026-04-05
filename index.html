@@ -1,45 +1,21 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kobalt Red FLAT</title>
+<title>Kobalt</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./visual/kobalt.css">
+<link rel="stylesheet" href="./dashboard/dashboard.css">
+<script>(function(){
+  var t=localStorage.getItem('kobalt:theme')||'dark';
+  document.documentElement.setAttribute('data-theme',t);
+})();</script>
 </head>
 <body>
-<script>
-(function(){var t=localStorage.getItem('kobalt:theme')||'dark';document.documentElement.setAttribute('data-theme',t)})();
-</script>
 
-<!-- ═══ FONDO DECORATIVO ═══ -->
-<div class="bg-wrap">
-  <div class="spark" style="top:12%;left:8%;animation-delay:0s"></div>
-  <div class="spark" style="top:24%;left:78%;animation-delay:1.2s"></div>
-  <div class="spark" style="top:68%;left:22%;animation-delay:2.4s"></div>
-  <div class="spark" style="top:82%;left:88%;animation-delay:.8s"></div>
-  <div class="spark" style="top:45%;left:52%;animation-delay:1.8s"></div>
-</div>
-
-<!-- ═══ NAVBAR ═══ -->
-<nav class="nav">
-  <span class="nav-logo">KOBALT</span>
-  <div class="nav-right">
-    <span id="sync-badge" class="badge badge-warn" style="display:none">—</span>
-    <button id="btn-sync" class="btn" style="display:none">↻ Sync</button>
-    <button id="btn-accounts" class="btn" style="display:none">
-      Cuentas<span id="acc-badge" class="acc-badge" style="display:none">0</span>
-    </button>
-    <button id="btn-logout" class="btn" style="display:none">Salir</button>
-    <button id="btnTheme" class="btn-theme">
-      <span id="thIconD">☾</span><span id="thIconL" style="display:none">☀</span>
-      <span id="thLabel">Oscuro</span>
-    </button>
-  </div>
-</nav>
-
-<!-- ═══ PANTALLA LOGIN ═══ -->
+<!-- ═══ LOGIN ═══ -->
 <div id="screen-login" class="page">
   <div class="login-wrap">
     <div class="login-card">
@@ -102,150 +78,70 @@
   </div>
 </div>
 
-<!-- ═══ PANTALLA APP ═══ -->
-<div id="screen-app">
-  <div class="app-bar">
-    <span id="ki-session" style="font-family:var(--font-mono);font-size:.7rem;color:var(--text-muted)">—</span>
-    <span style="flex:1"></span>
-    <button id="btn-toggle-add" class="btn">+ Producto</button>
-    <button id="btn-export" class="btn">⬇ JSON</button>
-  </div>
+<!-- ═══ DASHBOARD ═══ -->
+<div id="dashboard">
 
-  <div id="add-bar">
-    <input type="text" id="add-name" placeholder="Nombre del producto" style="flex:1;min-width:150px">
-    <input type="text" id="add-sku" placeholder="SKU" style="width:100px">
-    <input type="number" id="add-stk" value="0" style="width:60px" min="0">
-    <button id="btn-add-product" class="btn-add">AGREGAR</button>
-    <button id="btn-close-add" class="btn" style="padding:6px 8px">✕</button>
-  </div>
-
-  <div id="app-tabs">
-    <button class="app-tab on" data-tab="inventario">Inventario</button>
-    <button class="app-tab" data-tab="pos">Vender</button>
-    <button class="app-tab" data-tab="historial">Historial</button>
-  </div>
-
-  <div id="tab-inventario" class="tab-page on">
-
-  <div class="controls-bar">
-    <div class="search-wrap">
-      <span class="search-ico">⌕</span>
-      <input class="search-input" id="search-input" type="search" placeholder="Buscar nombre o SKU…" autocomplete="off">
+  <!-- Topbar -->
+  <div id="db-topbar">
+    <button id="db-mobile-menu"
+            style="display:none;background:none;border:none;
+                   color:var(--text-muted);font-size:1.1rem;
+                   cursor:pointer;padding:4px;margin-right:4px">
+      ☰
+    </button>
+    <div id="db-logo">KOBALT</div>
+    <div id="db-breadcrumb"
+         style="color:var(--text-muted);font-size:.78rem">
+      Cargando…
     </div>
-    <span style="flex:1"></span>
-    <select id="sort-select" class="sort-select">
-      <option value="ts-desc">Recientes</option>
-      <option value="ts-asc">Antiguos</option>
-      <option value="name-az">Nombre A→Z</option>
-      <option value="name-za">Nombre Z→A</option>
-      <option value="stk-desc">Mayor stock</option>
-    </select>
-    <div class="view-toggle">
-      <button id="btn-view-list" class="btn" title="Vista lista">☰</button>
-      <button id="btn-view-grid" class="btn" title="Vista grilla">⊞</button>
+    <div id="db-topbar-right">
+      <span id="sync-badge"
+            class="badge badge-warn"
+            style="display:none">—</span>
+      <button id="db-sync-btn" class="btn"
+              style="display:none;font-size:.7rem">
+        ↻ Sync
+      </button>
+      <button id="btn-accounts" class="btn"
+              style="display:none;font-size:.7rem">
+        Cuentas
+        <span id="acc-badge" class="acc-badge"
+              style="display:none">0</span>
+      </button>
+      <button id="btnTheme" class="btn-theme">
+        <span id="thIconD">☾</span>
+        <span id="thIconL" style="display:none">☀</span>
+      </button>
     </div>
   </div>
 
-  <div class="filters">
-    <button class="fbtn on" data-f="all">TODOS</button>
-    <button class="fbtn" data-f="nosku">SIN SKU</button>
-    <button class="fbtn" data-f="nostock">SIN STOCK</button>
-    <button class="fbtn" data-f="low">STOCK≤3</button>
-  </div>
+  <!-- Cuerpo -->
+  <div id="db-body">
 
-  <div class="chips">
-    <span class="chip" id="chip-total">— productos</span>
-    <span class="chip chip-nostock" id="chip-nostock" style="display:none"></span>
-    <span class="chip chip-low" id="chip-low" style="display:none"></span>
-    <span class="chip chip-nosku" id="chip-nosku" style="display:none"></span>
-  </div>
-
-  <div id="grid"></div>
-  <div id="empty">Sin productos aún.<br>Usa + Producto para comenzar.</div>
-
-  <div class="ki-grid">
-    <div class="ki-row"><span class="ki-label">Node</span><span class="ki-val" id="ki-node">—</span></div>
-    <div class="ki-row"><span class="ki-label">DB</span><span class="ki-val" id="ki-db">—</span></div>
-    <div class="ki-row"><span class="ki-label">Entidades</span><span class="ki-val" id="ki-count">—</span></div>
-    <div class="ki-row"><span class="ki-label">Status</span><span class="ki-val" id="ki-status">—</span></div>
-    <div class="ki-row"><span class="ki-label">Kernel</span><span class="ki-val" id="ki-version">—</span></div>
-  </div>
-
-  </div><!-- /tab-inventario -->
-
-  <div id="tab-pos" class="tab-page" style="display:none">
-
-  <div class="controls-bar" style="margin-bottom:12px">
-    <div class="search-wrap">
-      <span class="search-ico">⌕</span>
-      <input id="pos-search" type="search" class="search-input"
-             placeholder="Buscar producto…" autocomplete="off">
-    </div>
-    <button class="fbtn on" id="pos-f-all">TODOS</button>
-    <button class="fbtn"    id="pos-f-stock">CON STOCK</button>
-  </div>
-
-  <div id="pos-grid" style="display:grid;
-       grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-       gap:12px;margin-bottom:20px">
-  </div>
-
-  <div id="sale-modal" style="display:none;position:fixed;
-       inset:0;z-index:200;background:rgba(0,0,0,.65);
-       backdrop-filter:blur(4px);
-       align-items:center;justify-content:center">
-    <div style="background:var(--surface-raised);
-                border:1px solid var(--border-default);
-                border-radius:var(--r-lg);
-                width:90%;max-width:400px;
-                padding:24px;position:relative">
-      <button id="sale-modal-close"
-              style="position:absolute;top:14px;right:16px;
-                     background:none;border:none;
-                     color:var(--text-muted);
-                     font-size:1.2rem;cursor:pointer">✕</button>
-      <div id="sale-pname"
-           style="font-size:1rem;font-weight:700;
-                  margin-bottom:4px"></div>
-      <div id="sale-pmeta"
-           style="font-size:.75rem;color:var(--text-muted);
-                  margin-bottom:16px"></div>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        <div>
-          <label class="field-label">Cantidad</label>
-          <div style="display:flex;align-items:center;gap:6px">
-            <button id="sale-qty-m" class="sb sbm">−</button>
-            <input id="sale-qty" type="number"
-                   class="fi" value="1" min="1"
-                   style="width:70px;text-align:center">
-            <button id="sale-qty-p" class="sb sbp">+</button>
-          </div>
-        </div>
-        <div>
-          <label class="field-label">Precio unitario</label>
-          <input id="sale-price" type="number"
-                 class="k-input" placeholder="0" min="0">
-        </div>
-        <div>
-          <label class="field-label">Notas</label>
-          <input id="sale-notes" type="text"
-                 class="k-input" placeholder="Opcional…">
-        </div>
-        <button id="sale-confirm" class="btn-primary">
-          Registrar venta
+    <!-- Sidebar -->
+    <div id="db-sidebar">
+      <div id="db-collapse-btn">
+        <button id="db-collapse-btn-el">
+          <span id="db-toggle-icon">←</span>
+        </button>
+      </div>
+      <nav id="db-nav"></nav>
+      <div id="db-sidebar-foot">
+        <button class="db-nav-item" id="db-logout-foot"
+                data-tooltip="Salir">
+          <span class="db-nav-icon">🚪</span>
+          <span class="db-nav-label">Salir</span>
         </button>
       </div>
     </div>
+
+    <!-- Contenido de apps -->
+    <div id="db-content"></div>
+
   </div>
-
-  </div><!-- /tab-pos -->
-
-  <div id="tab-historial" class="tab-page" style="display:none">
-  </div><!-- /tab-historial -->
-
 </div>
 
-<!-- Toast -->
+<!-- Toast global -->
 <div id="toast"></div>
 
 <!-- Overlay -->
@@ -279,6 +175,7 @@
 <script src="./core/kernel_flat.js"></script>
 <script src="./red/connectors.js"></script>
 <script src="./visual/kobalt.visual.js"></script>
-<script src="./apps/commerce.js"></script>
+<script src="./dashboard/dashboard.js"></script>
+<script src="./apps/commerce/commerce.js"></script>
 </body>
 </html>
