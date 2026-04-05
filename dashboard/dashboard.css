@@ -28,7 +28,7 @@
   height: var(--topbar-h);
   flex-shrink: 0;
   background: var(--nav-bg);
-  border-bottom: 1px solid var(--sidebar-border);
+  border-bottom: none;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   display: flex;
@@ -44,7 +44,7 @@
   bottom: 0; left: 0; right: 0;
   height: 1px;
   background: var(--grad-main);
-  opacity: .25;
+  opacity: .65;
   pointer-events: none;
 }
 #db-logo {

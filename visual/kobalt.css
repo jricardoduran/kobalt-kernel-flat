@@ -35,7 +35,7 @@
   --text-primary:#E9EEF8;--text-secondary:#9BA8C0;--text-muted:#5A6A88;
   --border-default:rgba(77,106,247,.14);--border-subtle:rgba(77,106,247,.07);
   --accent:#4D6AF7;--accent-dim:rgba(77,106,247,.10);--accent-glow:rgba(77,106,247,.22);
-  --nav-bg:rgba(7,9,13,.96);--card-bg:#0b1018;
+  --nav-bg:#0d1525;--card-bg:#0b1018;
   --shadow-md:0 4px 24px rgba(0,0,0,.55);--shadow-drawer:-8px 0 48px rgba(0,0,0,.65);
   --page-radial:radial-gradient(ellipse at 18% 22%,rgba(41,197,246,.035) 0%,transparent 52%),radial-gradient(ellipse at 82% 78%,rgba(123,79,224,.028) 0%,transparent 52%);
   --input-bg:#0b1018;--input-border:rgba(41,197,246,.10);
@@ -47,7 +47,7 @@
   --badge-err-bg:rgba(248,113,113,.09);--badge-err-color:#F87171;--badge-err-border:rgba(248,113,113,.22);
   --drawer-overlay-bg:rgba(0,0,0,.55);
   /* sidebar — tema oscuro */
-  --sidebar-bg:#090c12;--sidebar-border:rgba(41,197,246,.08);
+  --sidebar-bg:#0a1220;--sidebar-border:rgba(41,197,246,.08);
   --sidebar-item-hover:rgba(41,197,246,.05);--sidebar-item-active-bg:rgba(77,106,247,.12);
   --border-hover:rgba(77,106,247,.4);
 }
