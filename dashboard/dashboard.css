@@ -8,8 +8,7 @@
   --sidebar-w:      200px;
   --sidebar-w-col:  48px;
   --topbar-h:       48px;
-  --sidebar-bg:     #090c12;
-  --sidebar-border: var(--border-subtle);
+  --sidebar-border: var(--sidebar-border, rgba(41,197,246,.08));
   --app-item-r:     var(--r-sm);
   --view-indent:    20px;
 }
@@ -37,6 +36,16 @@
   padding: 0 14px;
   gap: 10px;
   z-index: 100;
+  position: relative;
+}
+#db-topbar::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: var(--grad-main);
+  opacity: .25;
+  pointer-events: none;
 }
 #db-logo {
   font-size: .92rem;
@@ -110,8 +119,15 @@
 #db-sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
-  background: var(--sidebar-bg);
-  border-right: 1px solid var(--sidebar-border);
+  border-right: 1px solid transparent;
+  background:
+    linear-gradient(var(--sidebar-bg, #090c12), var(--sidebar-bg, #090c12))
+    padding-box,
+    linear-gradient(180deg,
+      rgba(41,197,246,.12),
+      rgba(77,106,247,.08) 50%,
+      transparent
+    ) border-box;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -130,18 +146,25 @@
 }
 #db-collapse-btn button {
   background: none;
-  border: none;
+  border: 1px solid var(--sidebar-border, var(--border-subtle));
   color: var(--text-muted);
   cursor: pointer;
-  padding: 4px;
-  border-radius: var(--r-sm);
-  font-size: .88rem;
-  transition: color .15s, background .15s;
+  padding: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: .85rem;
+  transition: all .2s;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 #db-collapse-btn button:hover {
-  color: var(--text-primary);
-  background: var(--surface-overlay);
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: 0 0 0 3px var(--accent-dim);
 }
 
 /* ── Nav principal ── */
@@ -171,6 +194,17 @@
 }
 .db-section-head:hover {
   color: var(--text-secondary) !important;
+}
+.db-section-head .db-nav-label {
+  font-size: .6rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  background: var(--grad-main);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  opacity: .85;
 }
 .db-section-body {
   display: none;
@@ -274,11 +308,11 @@
   position: relative;
 }
 .db-nav-item:hover {
-  background: var(--surface-overlay);
+  background: var(--sidebar-item-hover, var(--surface-overlay));
   color: var(--text-primary);
 }
 .db-nav-item.active {
-  background: var(--accent-dim);
+  background: var(--sidebar-item-active-bg, var(--accent-dim));
   color: var(--accent);
   font-weight: 600;
 }
@@ -348,6 +382,8 @@
   overflow-x: hidden;
   min-width: 0;
   position: relative;
+  background: var(--page-bg);
+  background-image: var(--page-radial);
 }
 
 /* Cada app vive en su propio contenedor */
@@ -355,7 +391,7 @@
   display: none;
   width: 100%;
   min-height: 100%;
-  padding: 20px 24px;
+  padding: 28px 32px;
   box-sizing: border-box;
   animation: db-fadein .16s ease both;
 }
@@ -459,11 +495,9 @@
 
 /* ── Botón de salir — estilo peligro sutil ── */
 #db-logout-foot {
-  color: var(--err);
-  opacity: .65;
+  color: rgba(248,113,113,.6);
 }
 #db-logout-foot:hover {
-  opacity: 1;
-  background: rgba(248,113,113,.06) !important;
   color: var(--err) !important;
+  background: rgba(248,113,113,.07) !important;
 }
