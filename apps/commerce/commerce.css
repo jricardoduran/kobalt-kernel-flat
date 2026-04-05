@@ -1,0 +1,11 @@
+/*
+ * commerce.css — Estilos específicos de la app de comercio
+ * Clase: I visual — extiende kobalt.css sin sobreescribir tokens
+ */
+
+/* ── Barra superior de sesión ── */
+.ki-session-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}

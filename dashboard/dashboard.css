@@ -516,7 +516,7 @@
   display: none;
   width: 100%;
   min-height: 100%;
-  padding: 28px 32px;
+  padding: 12px 28px 28px;
   box-sizing: border-box;
   animation: db-fadein var(--duration-base) ease both;
 }

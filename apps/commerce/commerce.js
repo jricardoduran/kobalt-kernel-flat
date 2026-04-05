@@ -26,10 +26,10 @@
   // ═══ COMMERCE_HTML — plantilla de la app (se inyecta en mount) ═══
   const COMMERCE_HTML = `
     <div class="app-bar">
-      <span id="ki-session" style="font-family:var(--font-mono);font-size:.7rem;color:var(--text-muted)">—</span>
+      <span id="ki-session" class="ki-session-label">—</span>
       <span style="flex:1"></span>
-      <button id="btn-toggle-add" class="btn">+ Producto</button>
-      <button id="btn-export" class="btn">⬇ JSON</button>
+      <button id="btn-toggle-add" class="btn btn-primary btn-sm">✦ Agregar Producto</button>
+      <button id="btn-export" class="btn btn-sm">⬇ JSON</button>
     </div>
 
     <div id="add-bar">
@@ -71,7 +71,7 @@
       <button class="fbtn on" data-f="all">TODOS</button>
       <button class="fbtn" data-f="nosku">SIN SKU</button>
       <button class="fbtn" data-f="nostock">SIN STOCK</button>
-      <button class="fbtn" data-f="low">STOCK≤3</button>
+      <button class="fbtn" data-f="low">CON STOCK</button>
     </div>
 
     <div class="chips">
@@ -414,14 +414,15 @@
   // F2 — chips de resumen (opera sobre el conjunto completo, sin filtrar)
   function updateChips(products) {
     const total   = products.length;
-    const nostock = products.filter(p => Number(parsePayload(p.payload).stock ?? 0) === 0).length;
-    const low     = products.filter(p => { const s = Number(parsePayload(p.payload).stock ?? 0); return s > 0 && s <= 3; }).length;
-    const nosku   = products.filter(p => !(parsePayload(p.payload).sku || '').trim()).length;
+    const nostock  = products.filter(p => Number(parsePayload(p.payload).stock ?? 0) === 0).length;
+    const low      = products.filter(p => { const s = Number(parsePayload(p.payload).stock ?? 0); return s > 0 && s <= 5; }).length;
+    const constock = products.filter(p => Number(parsePayload(p.payload).stock ?? 0) >= 3).length;
+    const nosku    = products.filter(p => !(parsePayload(p.payload).sku || '').trim()).length;
     V().setIfChanged($('chip-total'), total + ' producto' + (total !== 1 ? 's' : ''));
     const ns = $('chip-nostock'), lo = $('chip-low'), nk = $('chip-nosku');
-    if (ns) { ns.style.display = nostock ? '' : 'none'; V().setIfChanged(ns, nostock + ' agotado' + (nostock !== 1 ? 's' : '')); }
-    if (lo) { lo.style.display = low     ? '' : 'none'; V().setIfChanged(lo, low     + ' bajo stock'); }
-    if (nk) { nk.style.display = nosku   ? '' : 'none'; V().setIfChanged(nk, nosku   + ' sin SKU'); }
+    if (ns) { ns.style.display = nostock  ? '' : 'none'; V().setIfChanged(ns, nostock  + ' agotado' + (nostock !== 1 ? 's' : '')); }
+    if (lo) { lo.style.display = low      ? '' : 'none'; V().setIfChanged(lo, low      + ' bajo stock'); }
+    if (nk) { nk.style.display = nosku    ? '' : 'none'; V().setIfChanged(nk, nosku    + ' sin SKU'); }
   }
 
   // F3 — cambio de filtro activo
@@ -660,7 +661,7 @@
       all:     ()  => true,
       nosku:   p   => !(parsePayload(p.payload).sku || '').trim(),
       nostock: p   => Number(parsePayload(p.payload).stock ?? 0) === 0,
-      low:     p   => { const s = Number(parsePayload(p.payload).stock ?? 0); return s > 0 && s <= 3; },
+      low:     p   => Number(parsePayload(p.payload).stock ?? 0) >= 3,
     };
     let products = allProducts.filter(FILTERS[activeFilter] ?? FILTERS.all);
 
