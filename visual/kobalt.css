@@ -59,7 +59,7 @@
   --text-primary:#18102A;--text-secondary:#2A1A46;--text-muted:#7C7492;
   --border-default:rgba(123,79,224,.12);--border-subtle:rgba(123,79,224,.06);
   --accent:#7B4FE0;--accent-dim:rgba(123,79,224,.08);--accent-glow:rgba(123,79,224,.18);
-  --nav-bg:rgba(255,255,255,.94);--card-bg:#FFFFFF;
+  --nav-bg:#FFFFFF;--card-bg:#FFFFFF;
   --shadow-md:0 4px 20px rgba(80,60,140,.12);--shadow-drawer:-8px 0 48px rgba(80,60,140,.16);
   --page-radial:radial-gradient(ellipse at 18% 22%,rgba(123,79,224,.055) 0%,transparent 52%),radial-gradient(ellipse at 82% 78%,rgba(41,197,246,.035) 0%,transparent 52%);
   --input-bg:#EEEBF8;--input-border:rgba(123,79,224,.12);
@@ -71,7 +71,7 @@
   --badge-err-bg:rgba(244,112,128,.10);--badge-err-color:#A8202F;--badge-err-border:rgba(244,112,128,.26);
   --drawer-overlay-bg:rgba(40,18,72,.18);
   /* sidebar — tema claro */
-  --sidebar-bg:#F0EDF8;--sidebar-border:rgba(123,79,224,.12);
+  --sidebar-bg:#FFFFFF;--sidebar-border:rgba(123,79,224,.10);
   --sidebar-item-hover:rgba(123,79,224,.07);--sidebar-item-active-bg:rgba(123,79,224,.11);
   --border-hover:rgba(123,79,224,.45);--surface-high:#E8E4F4;
   --nav-bg:rgba(243,240,250,.97);
