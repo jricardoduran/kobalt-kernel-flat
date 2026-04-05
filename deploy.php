@@ -31,6 +31,7 @@ if ($action === 'file' && $method === 'POST') {
     $body     = json_decode(file_get_contents('php://input'), true);
     $filename = $body['filename'] ?? '';
     $content  = $body['content']  ?? null;
+    $binary   = $body['binary']   ?? false;
 
     if (!$filename || $content === null) {
         http_response_code(400);
@@ -48,7 +49,7 @@ if ($action === 'file' && $method === 'POST') {
     $dir  = dirname($path);
     if (!is_dir($dir)) mkdir($dir, 0755, true);
 
-    $bytes = file_put_contents($path, $content);
+    $bytes = file_put_contents($path, $binary ? base64_decode($content) : $content);
 
     $m = file_exists(MANIFEST_FILE) ? json_decode(file_get_contents(MANIFEST_FILE), true) : [];
     $m['files'][$filename] = ['size' => $bytes, 'ts' => time()];

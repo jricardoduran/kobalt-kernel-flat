@@ -1,5 +1,15 @@
 import { readFileSync, readdirSync, statSync } from 'fs';
-import { join, relative } from 'path';
+import { join, relative, extname } from 'path';
+
+const BINARY_EXTS = new Set([
+  '.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico',
+  '.woff', '.woff2', '.ttf', '.otf',
+  '.pdf', '.zip',
+]);
+
+function isBinary(rel) {
+  return BINARY_EXTS.has(extname(rel).toLowerCase());
+}
 
 const ENDPOINT = 'https://kobalt.app/flat/testClaudeCode/deploy.php';
 const IGNORE   = [
@@ -22,11 +32,14 @@ function collectFiles(dir, base = dir) {
 }
 
 async function deployFile({ full, rel }) {
-  const content = readFileSync(full, 'utf8');
+  const binary  = isBinary(rel);
+  const content = binary
+    ? readFileSync(full).toString('base64')
+    : readFileSync(full, 'utf8');
   const res = await fetch(ENDPOINT + '?action=file', {
     method  : 'POST',
     headers : { 'Content-Type': 'application/json' },
-    body    : JSON.stringify({ filename: rel, content }),
+    body    : JSON.stringify({ filename: rel, content, binary }),
   });
   return res.json();
 }
