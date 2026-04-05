@@ -25,13 +25,21 @@
 
   // ═══ COMMERCE_HTML — plantilla de la app (se inyecta en mount) ═══
   const COMMERCE_HTML = `
-    <div class="app-bar">
-      <span id="ki-session" class="ki-session-label">—</span>
-      <span style="flex:1"></span>
-      <button id="btn-toggle-add" class="btn btn-primary btn-sm">✦ Agregar Producto</button>
-      <button id="btn-export" class="btn btn-sm">⬇ JSON</button>
+
+    <!-- CABECERA: tabs a la izquierda, acciones a la derecha -->
+    <div class="cm-header">
+      <div id="app-tabs" class="cm-tabs">
+        <button class="app-tab on" data-tab="inventario">📦 Inventario</button>
+        <button class="app-tab" data-tab="pos">💳 Vender</button>
+        <button class="app-tab" data-tab="historial">📊 Historial</button>
+      </div>
+      <div class="cm-actions">
+        <button id="btn-export" class="btn btn-sm">⬇ JSON</button>
+        <button id="btn-toggle-add" class="btn btn-primary btn-sm">✦ Agregar Producto</button>
+      </div>
     </div>
 
+    <!-- Formulario de alta (colapsado por defecto) -->
     <div id="add-bar">
       <input type="text" id="add-name" placeholder="Nombre del producto" style="flex:1;min-width:150px">
       <input type="text" id="add-sku" placeholder="SKU" style="width:100px">
@@ -40,20 +48,18 @@
       <button id="btn-close-add" class="btn" style="padding:6px 8px">✕</button>
     </div>
 
-    <div id="app-tabs">
-      <button class="app-tab on" data-tab="inventario">Inventario</button>
-      <button class="app-tab" data-tab="pos">Vender</button>
-      <button class="app-tab" data-tab="historial">Historial</button>
-    </div>
+    <!-- Oculto: referencia de sesión para JS, no visible en UI -->
+    <span id="ki-session" style="display:none">—</span>
 
     <div id="tab-inventario" class="tab-page on">
 
-    <div class="controls-bar">
-      <div class="search-wrap">
-        <span class="search-ico">⌕</span>
-        <input class="search-input" id="search-input" type="search" placeholder="Buscar nombre o SKU…" autocomplete="off">
+    <!-- BUSCADOR PROMINENTE -->
+    <div class="cm-search-bar">
+      <div class="cm-search-wrap">
+        <span class="cm-search-ico">⌕</span>
+        <input class="cm-search-input" id="search-input" type="search"
+               placeholder="Buscar por nombre o SKU…" autocomplete="off">
       </div>
-      <span style="flex:1"></span>
       <select id="sort-select" class="sort-select">
         <option value="ts-desc">Recientes</option>
         <option value="ts-asc">Antiguos</option>
@@ -63,10 +69,11 @@
       </select>
       <div class="view-toggle">
         <button id="btn-view-list" class="btn" title="Vista lista">☰</button>
-        <button id="btn-view-grid" class="btn" title="Vista grilla">⊞</button>
+        <button id="btn-view-grid" class="btn active" title="Vista grilla">⊞</button>
       </div>
     </div>
 
+    <!-- FILTROS + CHIPS -->
     <div class="filters">
       <button class="fbtn on" data-f="all">TODOS</button>
       <button class="fbtn" data-f="nosku">SIN SKU</button>
