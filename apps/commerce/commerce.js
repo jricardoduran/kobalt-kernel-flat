@@ -15,7 +15,7 @@
   let _storagesConfig = null;
 
   // F1–F5 — estado visual
-  let viewMode     = localStorage.getItem('kobalt:view') || 'list';
+  let viewMode     = localStorage.getItem('kobalt:view') || 'grid';
   let activeFilter = 'all';
   let activeSort   = 'ts-desc';
   let searchQuery  = '';
