@@ -252,7 +252,63 @@ index.html           → Estructura: HTML puro + carga de scripts.
 auth.php             → S: registro + login + H_u.
 storages/proxy.php   → I: relay pasivo para storages.
 storages/*/driver    → I: driver específico de cada conector.
+data/apps.json       → I nav: árbol de apps/vistas — ÚNICA fuente de verdad.
 ```
+
+### 1.9b Disciplina de navegación — apps.json como fuente única
+
+El árbol de navegación del dashboard vive en `data/apps.json`.
+`dashboard.js` es un loader puro: lee el JSON y deriva todo por convención.
+No hay ninguna lista de apps en código JS.
+
+**Convenio de derivación por `id`:**
+```
+script:  ./apps/{id}/{id}.js          (salvo "script": false en el JSON)
+css:     ./apps/{id}/{id}.css         (salvo "css": false en el JSON)
+mount:   globalThis.KobaltApp_{Capitalize(id)}?.mount
+unmount: globalThis.KobaltApp_{Capitalize(id)}?.unmount
+```
+
+**Estructura de apps.json:**
+```json
+{
+  "sections": [
+    {
+      "id": "tienda", "label": "Tienda", "icon": "🏪", "defaultOpen": true,
+      "apps": [
+        {
+          "id": "commerce", "label": "Comercio", "icon": "📦",
+          "enabled": true,
+          "script": false,
+          "views": [
+            { "id": "inventario", "label": "Inventario" },
+            { "id": "pos",        "label": "Vender" }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Campos de override:**
+- `"script": false` → no cargar JS (app inline o ya cargada en index.html)
+- `"css": false` → no cargar CSS propio
+- `"script": "./ruta/custom.js"` → ruta explícita
+- `"enabled": false` → oculto en UI, sin borrar la entrada
+- `"view": "nombre"` en una vista → desacopla el id de nav del id interno de la app
+
+**Para añadir una nueva app:**
+1. Crear carpeta `apps/{id}/`
+2. Crear `apps/{id}/{id}.js` que expone `globalThis.KobaltApp_{Capitalize(id)}`
+3. Crear `apps/{id}/{id}.css` (opcional)
+4. Añadir entrada en `data/apps.json`
+5. No tocar `dashboard.js`
+
+**Apps especiales inline** (`sesion`, `config`):
+- Tienen `"script": false, "css": false` en el JSON
+- El dashboard.js las detecta por `appNode.id` con casos específicos
+- Son las únicas excepciones a la convención — documentadas en el JSON
 
 **Orden de carga obligatorio en index.html:**
 ```html
@@ -527,6 +583,11 @@ I18: la firma proyecta lo visible, no lo total
      firma = proyección(estado_total, campos_visibles_al_usuario)
      Campos internos no visibles no forman parte de la firma.
 
+I20: data/apps.json es la única fuente de verdad del árbol de navegación
+     Añadir una app = solo tocar apps.json, no dashboard.js.
+     dashboard.js es un loader puro que deriva todo por convención de id.
+     Habilitar/deshabilitar = "enabled": false. Nunca borrar entradas activas.
+
 I19: el trigger y el guard son responsabilidades separadas
      El trigger decide cuándo verificar (interval, evento, sync)
      El guard decide si actualizar (comparación de firmas)
@@ -581,6 +642,8 @@ I19: el trigger y el guard son responsabilidades separadas
 | "voy a añadir otro store IDB para separar" | 1 store con prefijos basta |
 | "snapshot es una entidad especial" | snapshot ⊂ sync — mismo merge |
 | "doSync() sin await aquí no importa" | Los errores de sync siempre son visibles |
+| "voy a añadir la app al NAV_TREE en dashboard.js" | Solo tocar data/apps.json — dashboard.js es un loader, no un registro |
+| "voy a hardcodear KobaltApp_X en dashboard.js" | Se deriva por convención: KobaltApp_{Capitalize(id)} — no mapas hardcodeados |
 | "<img src> directo a CDN en cada render" | Usar loadAssetImg para cachear |
 | "<link> a CDN sin caché local"           | Usar loadAssetCSS para cachear |
 | "voy a actualizar el DOM en cada tick del interval" | El trigger llama a syncUI(), no a render() directamente |

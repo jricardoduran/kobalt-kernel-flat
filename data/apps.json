@@ -1,0 +1,91 @@
+{
+  "_comment": "Árbol de navegación del dashboard. Añadir app = añadir entrada aquí. enabled:false = oculto en UI sin borrar.",
+  "sections": [
+    {
+      "id": "tienda",
+      "label": "Tienda",
+      "icon": "🏪",
+      "defaultOpen": true,
+      "apps": [
+        {
+          "id": "commerce",
+          "label": "Comercio",
+          "icon": "📦",
+          "desc": "Inventario y punto de venta",
+          "script": false,
+          "enabled": true,
+          "views": [
+            { "id": "inventario", "label": "Inventario" },
+            { "id": "pos",        "label": "Vender" },
+            { "id": "historial",  "label": "Historial" },
+            { "id": "pagos",      "label": "Medios de pago" }
+          ]
+        },
+        {
+          "id": "canales",
+          "label": "Canales",
+          "icon": "🔗",
+          "desc": "ML, Shopify, WooCommerce",
+          "enabled": false
+        }
+      ]
+    },
+    {
+      "id": "herramientas",
+      "label": "Herramientas",
+      "icon": "🛠️",
+      "defaultOpen": false,
+      "apps": [
+        {
+          "id": "imagenes",
+          "label": "Imágenes",
+          "icon": "🖼️",
+          "desc": "Procesador de imágenes",
+          "enabled": false
+        },
+        {
+          "id": "design",
+          "label": "Design System",
+          "icon": "◈",
+          "desc": "Componentes y tokens de la UI Kobalt",
+          "css": false,
+          "enabled": false,
+          "views": [
+            { "id": "design.tokens",      "label": "Tokens",      "view": "tokens"      },
+            { "id": "design.botones",     "label": "Botones",     "view": "botones"     },
+            { "id": "design.datos",       "label": "Datos",       "view": "datos"       },
+            { "id": "design.formularios", "label": "Formularios", "view": "formularios" },
+            { "id": "design.feedback",    "label": "Feedback",    "view": "feedback"    },
+            { "id": "design.layout",      "label": "Layout",      "view": "layout"      }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sistema",
+      "label": "Sistema",
+      "icon": "⚙️",
+      "defaultOpen": false,
+      "apps": [
+        {
+          "id": "sesion",
+          "label": "Sesión",
+          "icon": "🔑",
+          "desc": "Estado del kernel y nodo",
+          "script": false,
+          "css": false,
+          "enabled": true
+        },
+        {
+          "id": "config",
+          "label": "Configuración",
+          "icon": "🎨",
+          "desc": "Apariencia y ajustes del dashboard",
+          "script": false,
+          "css": false,
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}
