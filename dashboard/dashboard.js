@@ -80,6 +80,25 @@
     }));
   }
 
+  // Fallback mínimo si apps.json no está disponible
+  const _NAV_FALLBACK = {
+    sections: [{
+      id: 'tienda', label: 'Tienda', icon: '🏪', defaultOpen: true,
+      apps: [{ id: 'commerce', label: 'Comercio', icon: '📦',
+               desc: 'Inventario y punto de venta', script: false, enabled: true,
+               views: [
+                 { id: 'inventario', label: 'Inventario' },
+                 { id: 'pos',        label: 'Vender' },
+                 { id: 'historial',  label: 'Historial' },
+                 { id: 'pagos',      label: 'Medios de pago' },
+               ] }] },
+    { id: 'sistema', label: 'Sistema', icon: '⚙️', defaultOpen: false,
+      apps: [
+        { id: 'sesion', label: 'Sesión',         icon: '🔑', desc: 'Estado del kernel', script: false, css: false, enabled: true },
+        { id: 'config', label: 'Configuración',  icon: '🎨', desc: 'Apariencia',        script: false, css: false, enabled: true },
+      ] }],
+  };
+
   async function _loadNavTree() {
     try {
       const resp = await fetch('./data/apps.json');
@@ -87,8 +106,8 @@
       const config = await resp.json();
       _NAV_TREE = _buildNavTree(config);
     } catch (e) {
-      console.error('[Dashboard] No se pudo cargar apps.json:', e);
-      _NAV_TREE = [];
+      console.warn('[Dashboard] apps.json no disponible, usando fallback:', e.message);
+      _NAV_TREE = _buildNavTree(_NAV_FALLBACK);
     }
   }
 

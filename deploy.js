@@ -14,9 +14,11 @@ function isBinary(rel) {
 const ENDPOINT = 'https://kobalt.app/flat/testClaudeCode/deploy.php';
 const IGNORE   = [
   'node_modules', '.git', '.claude', '.claude-flow', '.swarm',
-  'deploy.js', 'deploy.php', 'current', 'data',
+  'deploy.js', 'deploy.php', 'current',
   'package.json', 'package-lock.json',
   'snapshots',    // zips locales — no van al servidor
+  // data/ SÍ se despliega (apps.json), pero no estos archivos sensibles:
+  'users.json', 'kobalt1.json',
 ];
 
 function collectFiles(dir, base = dir) {

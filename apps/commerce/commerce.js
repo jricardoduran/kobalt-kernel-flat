@@ -746,7 +746,7 @@
     });
 
     // El dashboard toma el control de la UI a partir de aquí
-    globalThis.KobaltDashboard.open(session);
+    await globalThis.KobaltDashboard.open(session);
   }
 
   /* ═══════════════════════════════════════════════════
